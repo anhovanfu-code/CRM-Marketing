@@ -1,0 +1,6 @@
+{
+  "name": "FUGALO - Quản lý Marketing",
+  "description": "Hệ thống quản lý phòng Marketing nội bộ cho thương hiệu FUGALO - Tái sinh giá trị",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

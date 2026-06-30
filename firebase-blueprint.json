@@ -1,0 +1,269 @@
+{
+  "entities": {
+    "TeamMember": {
+      "title": "TeamMember",
+      "description": "Thành viên ê-kíp phòng Marketing",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "role": { "type": "string" },
+        "email": { "type": "string" },
+        "phone": { "type": "string" },
+        "specialist_group": { "type": "string" },
+        "manager_id": { "type": "string" },
+        "main_task": { "type": "string" },
+        "permissions": { "type": "array" },
+        "responsibilities": { "type": "array" },
+        "personal_kpis": { "type": "array" },
+        "tasks_in_progress": { "type": "number" },
+        "tasks_completed": { "type": "number" },
+        "tasks_overdue": { "type": "number" },
+        "completion_rate": { "type": "number" },
+        "performance_score": { "type": "number" },
+        "notes": { "type": "string" }
+      },
+      "required": ["id", "name", "role", "email"]
+    },
+    "Task": {
+      "title": "Task",
+      "description": "Đầu việc marketing chi tiết",
+      "type": "object",
+      "properties": {
+        "task_id": { "type": "string" },
+        "task_name": { "type": "string" },
+        "description": { "type": "string" },
+        "business_category": { "type": "string" },
+        "task_type": { "type": "string" },
+        "assignee": { "type": "string" },
+        "collaborators": { "type": "array" },
+        "reviewer": { "type": "string" },
+        "start_date": { "type": "string" },
+        "deadline": { "type": "string" },
+        "priority": { "type": "string" },
+        "status": { "type": "string" },
+        "progress_percentage": { "type": "number" },
+        "attachments": { "type": "array" },
+        "expected_delivery": { "type": "string" },
+        "actual_delivery": { "type": "string" },
+        "feedback_notes": { "type": "string" },
+        "delay_reason": { "type": "string" },
+        "actual_completion_date": { "type": "string" }
+      },
+      "required": ["task_id", "task_name", "business_category", "task_type", "assignee", "status"]
+    },
+    "ProductionSchedule": {
+      "title": "ProductionSchedule",
+      "description": "Lịch sản xuất chi tiết của media",
+      "type": "object",
+      "properties": {
+        "production_id": { "type": "string" },
+        "production_date": { "type": "string" },
+        "business_category": { "type": "string" },
+        "content": { "type": "string" },
+        "production_type": { "type": "string" },
+        "assignee": { "type": "string" },
+        "location": { "type": "string" },
+        "brief_script": { "type": "string" },
+        "resources_needed": { "type": "string" },
+        "delivery_deadline": { "type": "string" },
+        "status": { "type": "string" },
+        "notes": { "type": "string" }
+      },
+      "required": ["production_id", "production_date", "business_category", "content", "production_type", "assignee", "status"]
+    },
+    "Campaign": {
+      "title": "Campaign",
+      "description": "Chiến dịch marketing tổng thể",
+      "type": "object",
+      "properties": {
+        "campaign_id": { "type": "string" },
+        "campaign_name": { "type": "string" },
+        "business_category": { "type": "string" },
+        "goal": { "type": "string" },
+        "start_date": { "type": "string" },
+        "end_date": { "type": "string" },
+        "owner": { "type": "string" },
+        "participants": { "type": "array" },
+        "task_ids": { "type": "array" },
+        "content_production": { "type": "string" },
+        "media_production": { "type": "string" },
+        "ads_deployment": { "type": "string" },
+        "seeding_deployment": { "type": "string" },
+        "estimated_budget": { "type": "number" },
+        "status": { "type": "string" },
+        "achieved_results": { "type": "string" },
+        "post_evaluation": { "type": "string" },
+        "improvement_proposals": { "type": "string" }
+      },
+      "required": ["campaign_id", "campaign_name", "business_category", "status"]
+    },
+    "KpiAssignment": {
+      "title": "KpiAssignment",
+      "description": "KPI giao cho chuyên viên",
+      "type": "object",
+      "properties": {
+        "kpi_id": { "type": "string" },
+        "staff_id": { "type": "string" },
+        "role": { "type": "string" },
+        "evaluation_month": { "type": "string" },
+        "kpi_name": { "type": "string" },
+        "target_value": { "type": "string" },
+        "actual_value": { "type": "string" },
+        "completion_rate": { "type": "number" },
+        "kpi_score": { "type": "number" },
+        "manager_feedback": { "type": "string" },
+        "action_proposal": { "type": "string" },
+        "status": { "type": "string" }
+      },
+      "required": ["kpi_id", "staff_id", "evaluation_month", "kpi_name", "status"]
+    },
+    "WorkReport": {
+      "title": "WorkReport",
+      "description": "Báo cáo công việc định kỳ",
+      "type": "object",
+      "properties": {
+        "report_id": { "type": "string" },
+        "reporter_id": { "type": "string" },
+        "report_date": { "type": "string" },
+        "report_type": { "type": "string" },
+        "completed_tasks_summary": { "type": "string" },
+        "pending_tasks_summary": { "type": "string" },
+        "overdue_tasks_summary": { "type": "string" },
+        "overdue_reason": { "type": "string" },
+        "results_achieved": { "type": "string" },
+        "issues_encountered": { "type": "string" },
+        "proposed_solutions": { "type": "string" },
+        "support_needed": { "type": "string" },
+        "next_plans": { "type": "string" },
+        "reviewer_id": { "type": "string" },
+        "status": { "type": "string" }
+      },
+      "required": ["report_id", "reporter_id", "report_date", "report_type", "status"]
+    },
+    "PersonnelEvaluation": {
+      "title": "PersonnelEvaluation",
+      "description": "Đánh giá hiệu suất nhân viên định kỳ",
+      "type": "object",
+      "properties": {
+        "evaluation_id": { "type": "string" },
+        "staff_id": { "type": "string" },
+        "evaluator_id": { "type": "string" },
+        "month": { "type": "string" },
+        "kpi_points": { "type": "number" },
+        "deadline_points": { "type": "number" },
+        "quality_points": { "type": "number" },
+        "proactive_points": { "type": "number" },
+        "teamwork_points": { "type": "number" },
+        "total_score": { "type": "number" },
+        "classification": { "type": "string" },
+        "strengths": { "type": "string" },
+        "weaknesses": { "type": "string" },
+        "proposed_action": { "type": "string" },
+        "notes": { "type": "string" }
+      },
+      "required": ["evaluation_id", "staff_id", "evaluator_id", "month", "total_score", "classification"]
+    },
+    "Proposal": {
+      "title": "Proposal",
+      "description": "Đề xuất cải tiến/đột phá phương án",
+      "type": "object",
+      "properties": {
+        "proposal_id": { "type": "string" },
+        "proposer_id": { "type": "string" },
+        "proposal_date": { "type": "string" },
+        "issue_description": { "type": "string" },
+        "business_category": { "type": "string" },
+        "evidence": { "type": "string" },
+        "root_cause": { "type": "string" },
+        "proposed_solution": { "type": "string" },
+        "expected_benefits": { "type": "string" },
+        "resources_needed": { "type": "string" },
+        "timeline": { "type": "string" },
+        "owner_id": { "type": "string" },
+        "status": { "type": "string" },
+        "post_deployment_result": { "type": "string" }
+      },
+      "required": ["proposal_id", "proposer_id", "proposal_date", "issue_description", "proposed_solution", "status"]
+    },
+    "Resource": {
+      "title": "Resource",
+      "description": "Tài nguyên thành phẩm (media/kịch bản)",
+      "type": "object",
+      "properties": {
+        "resource_id": { "type": "string" },
+        "title": { "type": "string" },
+        "resource_type": { "type": "string" },
+        "business_category": { "type": "string" },
+        "campaign_id": { "type": "string" },
+        "creator_id": { "type": "string" },
+        "created_date": { "type": "string" },
+        "file_link": { "type": "string" },
+        "status": { "type": "string" },
+        "notes": { "type": "string" }
+      },
+      "required": ["resource_id", "title", "resource_type", "business_category", "creator_id", "file_link", "status"]
+    },
+    "WorkPlan": {
+      "title": "WorkPlan",
+      "description": "Kế hoạch tuần & tháng",
+      "type": "object",
+      "properties": {
+        "plan_id": { "type": "string" },
+        "creator_id": { "type": "string" },
+        "plan_type": { "type": "string" },
+        "period_name": { "type": "string" },
+        "target_goals": { "type": "string" },
+        "key_results": { "type": "string" },
+        "tasks_list": { "type": "string" },
+        "notes": { "type": "string" },
+        "reviewer_id": { "type": "string" },
+        "status": { "type": "string" },
+        "created_at": { "type": "string" }
+      },
+      "required": ["plan_id", "creator_id", "plan_type", "period_name", "status"]
+    }
+  },
+  "firestore": {
+    "members/{memberId}": {
+      "schema": "TeamMember",
+      "description": "Thành viên Marketing"
+    },
+    "tasks/{taskId}": {
+      "schema": "Task",
+      "description": "Công việc Marketing"
+    },
+    "schedules/{scheduleId}": {
+      "schema": "ProductionSchedule",
+      "description": "Lịch sản xuất media"
+    },
+    "campaigns/{campaignId}": {
+      "schema": "Campaign",
+      "description": "Chiến dịch Marketing"
+    },
+    "kpis/{kpiId}": {
+      "schema": "KpiAssignment",
+      "description": "KPI giao cho chuyên viên"
+    },
+    "reports/{reportId}": {
+      "schema": "WorkReport",
+      "description": "Báo cáo công việc định kỳ"
+    },
+    "evaluations/{evaluationId}": {
+      "schema": "PersonnelEvaluation",
+      "description": "Đánh giá nhân viên"
+    },
+    "proposals/{proposalId}": {
+      "schema": "Proposal",
+      "description": "Đề xuất cải tiến"
+    },
+    "resources/{resourceId}": {
+      "schema": "Resource",
+      "description": "Tài nguyên Marketing"
+    },
+    "plans/{planId}": {
+      "schema": "WorkPlan",
+      "description": "Kế hoạch tuần & tháng"
+    }
+  }
+}
