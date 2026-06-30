@@ -22,7 +22,8 @@ import {
   Mail,
   Settings,
   Target,
-  BookOpen
+  BookOpen,
+  Lock
 } from 'lucide-react';
 import { UserRole } from '../types';
 
@@ -31,6 +32,7 @@ interface SidebarProps {
   setActiveMenu: (menu: string) => void;
   activeRole: UserRole;
   setActiveRole: (role: UserRole) => void;
+  currentUserEmail?: string;
 }
 
 export default function Sidebar({
@@ -38,6 +40,7 @@ export default function Sidebar({
   setActiveMenu,
   activeRole,
   setActiveRole,
+  currentUserEmail,
 }: SidebarProps) {
   const [showRoleDropdown, setShowRoleDropdown] = React.useState(false);
 
@@ -102,40 +105,69 @@ export default function Sidebar({
         <label className="text-[9px] text-[#8C8995] font-bold uppercase tracking-wider block mb-1">
           Quyền truy cập (Phòng MKT)
         </label>
-        <button
-          onClick={() => setShowRoleDropdown(!showRoleDropdown)}
-          className="w-full flex items-center justify-between px-3 py-1.5 bg-white hover:bg-slate-50 text-xs font-bold rounded border border-slate-200 text-[#2F2B3D] transition shadow-sm"
-        >
-          <div className="flex items-center gap-1.5 text-[#E04B1C]">
-            <ShieldCheck className="w-4 h-4" />
-            <span className="text-[#2F2B3D]">{activeRole === 'Manager' ? 'Trưởng Phòng (Manager)' : activeRole === 'Admin' ? 'Admin' : activeRole === 'Staff' ? 'Nhân Viên' : 'Chỉ Xem (Viewer)'}</span>
-          </div>
-          <ChevronDown className={`w-3 h-3 text-slate-400 transition-transform ${showRoleDropdown ? 'rotate-180' : ''}`} />
-        </button>
+        {(() => {
+          const isManagerOrAdmin = !currentUserEmail || (
+            currentUserEmail.toLowerCase() === 'an.hv@fugalo.vn' || 
+            currentUserEmail.toLowerCase() === 'anhovan.fu@gmail.com' || 
+            currentUserEmail.toLowerCase().startsWith('an.hv') || 
+            currentUserEmail.toLowerCase().startsWith('anhovan')
+          );
 
-        {showRoleDropdown && (
-          <div className="absolute left-4 right-4 mt-1 bg-white border border-slate-200 rounded-lg shadow-xl z-50 overflow-hidden">
-            {roles.map((role) => (
-              <button
-                key={role}
-                onClick={() => {
-                  setActiveRole(role);
-                  setShowRoleDropdown(false);
-                }}
-                className={`w-full text-left px-3 py-2 text-xs font-semibold transition duration-150 ${
-                  activeRole === role
-                    ? 'bg-[#E04B1C]/10 text-[#E04B1C] border-l-4 border-[#E04B1C]'
-                    : 'text-slate-700 hover:bg-[#F4F5FA]'
-                }`}
-              >
-                {role === 'Admin' && 'Admin (Ban Giám Đốc)'}
-                {role === 'Manager' && 'Manager (Trưởng Phòng)'}
-                {role === 'Staff' && 'Staff (Nhân Viên Team)'}
-                {role === 'Viewer' && 'Viewer (Chỉ Xem)'}
-              </button>
-            ))}
-          </div>
-        )}
+          if (isManagerOrAdmin) {
+            return (
+              <>
+                <button
+                  onClick={() => setShowRoleDropdown(!showRoleDropdown)}
+                  className="w-full flex items-center justify-between px-3 py-1.5 bg-white hover:bg-slate-50 text-xs font-bold rounded border border-slate-200 text-[#2F2B3D] transition shadow-sm"
+                >
+                  <div className="flex items-center gap-1.5 text-[#E04B1C]">
+                    <ShieldCheck className="w-4 h-4" />
+                    <span className="text-[#2F2B3D]">
+                      {activeRole === 'Manager' ? 'Trưởng Phòng (Manager)' : activeRole === 'Admin' ? 'Admin' : activeRole === 'Staff' ? 'Nhân Viên' : 'Chỉ Xem (Viewer)'}
+                    </span>
+                  </div>
+                  <ChevronDown className={`w-3 h-3 text-slate-400 transition-transform ${showRoleDropdown ? 'rotate-180' : ''}`} />
+                </button>
+
+                {showRoleDropdown && (
+                  <div className="absolute left-4 right-4 mt-1 bg-white border border-slate-200 rounded-lg shadow-xl z-50 overflow-hidden">
+                    {roles.map((role) => (
+                      <button
+                        key={role}
+                        onClick={() => {
+                          setActiveRole(role);
+                          setShowRoleDropdown(false);
+                        }}
+                        className={`w-full text-left px-3 py-2 text-xs font-semibold transition duration-150 ${
+                          activeRole === role
+                            ? 'bg-[#E04B1C]/10 text-[#E04B1C] border-l-4 border-[#E04B1C]'
+                            : 'text-slate-700 hover:bg-[#F4F5FA]'
+                        }`}
+                      >
+                        {role === 'Admin' && 'Admin (Ban Giám Đốc)'}
+                        {role === 'Manager' && 'Manager (Trưởng Phòng)'}
+                        {role === 'Staff' && 'Staff (Nhân Viên Team)'}
+                        {role === 'Viewer' && 'Viewer (Chỉ Xem)'}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </>
+            );
+          }
+
+          return (
+            <div className="w-full flex items-center justify-between px-3 py-1.5 bg-slate-100 text-xs font-bold rounded border border-slate-200 text-slate-500 cursor-not-allowed select-none shadow-inner">
+              <div className="flex items-center gap-1.5 text-slate-400">
+                <Lock className="w-3.5 h-3.5 text-slate-400" />
+                <span>
+                  {activeRole === 'Manager' ? 'Trưởng Phòng' : activeRole === 'Admin' ? 'Admin' : activeRole === 'Staff' ? 'Nhân Viên' : 'Chỉ Xem'}
+                </span>
+              </div>
+              <span className="text-[8px] bg-slate-200 text-slate-500 px-1.5 py-0.5 rounded uppercase font-black tracking-wider">Cố định</span>
+            </div>
+          );
+        })()}
       </div>
 
       {/* Menu Navigation */}

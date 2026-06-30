@@ -878,6 +878,7 @@ export default function App() {
         setActiveMenu={setActiveMenu}
         activeRole={activeRole}
         setActiveRole={setActiveRole}
+        currentUserEmail={user?.email || undefined}
       />
 
       {/* Main interactive window with top header */}
