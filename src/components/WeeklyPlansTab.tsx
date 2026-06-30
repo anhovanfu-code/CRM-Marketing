@@ -432,7 +432,7 @@ export default function WeeklyPlansTab({
   };
 
   return (
-    <div className="mt-6 flex-1 flex flex-col min-w-0">
+    <div className="flex-1 flex flex-col min-w-0 overflow-y-auto p-6">
       
       {/* Top filter rail */}
       <div className="bg-white border border-[#E6E6E8] rounded-xl p-4 mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-[0_4px_18px_rgba(15,10,32,0.03)]">
@@ -1263,7 +1263,9 @@ export default function WeeklyPlansTab({
             );
           })}
         </div>
-      ))}`,TargetContent:
+      )
+    )
+  }
 
       {/* CREATE / EDIT PLAN DIALOG/MODAL WITH DYNAMIC OBJECTIVE AND LINKED TASKS ENGINE */}
       {isCreateModalOpen && (

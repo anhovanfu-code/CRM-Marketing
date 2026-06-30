@@ -64,7 +64,7 @@ import {
 
 export default function App() {
   const [activeMenu, setActiveMenu] = useState<string>('dashboard');
-  const [activeRole, setActiveRole] = useState<UserRole>('Manager');
+  const [activeRole, setActiveRole] = useState<UserRole>('Viewer');
 
   // Real-time notification menu state
   const [showNotifications, setShowNotifications] = useState(false);
@@ -149,6 +149,7 @@ export default function App() {
         }
       } else {
         setDbLoaded(false);
+        setActiveRole('Viewer');
       }
       setAuthLoading(false);
     });
@@ -572,6 +573,26 @@ export default function App() {
   }, [tasks, dbLoaded, webhooks, members]);
 
   const renderActiveView = () => {
+    // Bảo vệ các view riêng tư dựa trên vai trò người dùng (activeRole)
+    const isManagerOrAdmin = activeRole === 'Admin' || activeRole === 'Manager';
+    const protectedMenus = ['kpis', 'reports', 'evaluations', 'team', 'settings'];
+    
+    if (protectedMenus.includes(activeMenu) && !isManagerOrAdmin) {
+      // Nếu không có quyền, tự động chuyển hướng/hiển thị Dashboard
+      return (
+        <DashboardView
+          members={computedMembers}
+          tasks={tasks}
+          schedules={schedules}
+          campaigns={campaigns}
+          kpis={kpis}
+          reports={reports}
+          evaluations={evaluations}
+          proposals={proposals}
+        />
+      );
+    }
+
     switch (activeMenu) {
       case 'guide':
         return (

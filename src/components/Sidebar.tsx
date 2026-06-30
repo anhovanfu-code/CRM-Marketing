@@ -44,7 +44,19 @@ export default function Sidebar({
 }: SidebarProps) {
   const [showRoleDropdown, setShowRoleDropdown] = React.useState(false);
 
-  const menuSections = [
+  interface MenuItem {
+    id: string;
+    label: string;
+    icon: React.ComponentType<any>;
+    allowedRoles?: UserRole[];
+  }
+
+  interface MenuSection {
+    title: string;
+    items: MenuItem[];
+  }
+
+  const menuSections: MenuSection[] = [
     {
       title: "1. Chiến Lược & Kế Hoạch",
       items: [
@@ -65,20 +77,28 @@ export default function Sidebar({
       title: "3. Hiệu Suất & Đánh Giá",
       items: [
         { id: 'dashboard', label: 'Dashboard Tổng Quan', icon: LayoutDashboard },
-        { id: 'reports', label: 'Báo Cáo Công Việc', icon: BarChart3 },
-        { id: 'kpis', label: 'Quản Lý KPI Nhân Sự', icon: TrendingUp },
-        { id: 'evaluations', label: 'Đánh Giá Hiệu Suất', icon: Award },
+        { id: 'reports', label: 'Báo Cáo Công Việc', icon: BarChart3, allowedRoles: ['Admin', 'Manager'] },
+        { id: 'kpis', label: 'Quản Lý KPI Nhân Sự', icon: TrendingUp, allowedRoles: ['Admin', 'Manager'] },
+        { id: 'evaluations', label: 'Đánh Giá Hiệu Suất', icon: Award, allowedRoles: ['Admin', 'Manager'] },
       ]
     },
     {
       title: "4. Sáng Tạo & Hệ Thống",
       items: [
         { id: 'proposals', label: 'Đề Xuất Phương Án', icon: Lightbulb },
-        { id: 'team', label: 'Nhân Sự Marketing', icon: UsersRound },
-        { id: 'settings', label: 'Cấu Hình Webhooks', icon: Settings },
+        { id: 'team', label: 'Nhân Sự Marketing', icon: UsersRound, allowedRoles: ['Admin', 'Manager'] },
+        { id: 'settings', label: 'Cấu Hình Webhooks', icon: Settings, allowedRoles: ['Admin', 'Manager'] },
       ]
     }
   ];
+
+  const filteredSections = menuSections.map(section => {
+    const items = section.items.filter(item => {
+      if (!item.allowedRoles) return true;
+      return item.allowedRoles.includes(activeRole);
+    });
+    return { ...section, items };
+  }).filter(section => section.items.length > 0);
 
   const roles: UserRole[] = ['Admin', 'Manager', 'Staff', 'Viewer'];
 
@@ -106,7 +126,7 @@ export default function Sidebar({
           Quyền truy cập (Phòng MKT)
         </label>
         {(() => {
-          const isManagerOrAdmin = !currentUserEmail || (
+          const isManagerOrAdmin = currentUserEmail && (
             currentUserEmail.toLowerCase() === 'an.hv@fugalo.vn' || 
             currentUserEmail.toLowerCase() === 'anhovan.fu@gmail.com' || 
             currentUserEmail.toLowerCase().startsWith('an.hv') || 
@@ -172,7 +192,7 @@ export default function Sidebar({
 
       {/* Menu Navigation */}
       <div id="sidebar-menu" className="flex-1 overflow-y-auto py-4 space-y-4 px-3">
-        {menuSections.map((section) => (
+        {filteredSections.map((section) => (
           <div key={section.title} className="space-y-1">
             <div className="px-3 py-1 text-[9px] font-black text-[#8C8995] uppercase tracking-wider font-mono">
               {section.title}
@@ -184,7 +204,7 @@ export default function Sidebar({
                 <button
                   key={item.id}
                   onClick={() => setActiveMenu(item.id)}
-                  className={`w-full flex items-center gap-3 px-3 py-2 text-xs font-bold rounded-lg transition duration-150 ${
+                  className={`w-full flex items-center justify-start gap-3 px-3 py-2 text-xs font-bold rounded-lg transition duration-150 ${
                     isActive
                       ? 'bg-gradient-to-r from-[#E04B1C] to-[#F46336] text-white font-extrabold shadow-[0_4px_12px_0_rgba(224,75,28,0.3)]'
                       : 'text-[#2F2B3D]/70 hover:bg-[#F4F5FA] hover:text-[#2F2B3D]'

@@ -172,6 +172,11 @@ button:not(.p-1):not(.p-1\.5):not(.p-2):not(.w-8):not(.w-10):not(.h-8):not(.h-10
   transition: all 0.15s ease-in-out !important;
 }
 
+button.justify-start,
+button:not(.p-1):not(.p-1\.5):not(.p-2):not(.w-8):not(.w-10):not(.h-8):not(.h-10).justify-start {
+  justify-content: flex-start !important;
+}
+
 button svg {
   width: 14px !important;
   height: 14px !important;

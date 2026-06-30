@@ -98,7 +98,7 @@ export default function SettingsView({
   };
 
   return (
-    <div id="settings-view-root" className="p-6 space-y-6 max-w-5xl mx-auto">
+    <div id="settings-view-root" className="flex-1 overflow-y-auto p-6 space-y-6 max-w-5xl mx-auto w-full">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-5">
         <div>

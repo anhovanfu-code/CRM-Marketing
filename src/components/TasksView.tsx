@@ -252,7 +252,11 @@ export default function TasksView({
 
   const openEditModal = (task: Task) => {
     setEditingTask(task);
-    setFormData({ ...task, visibility: task.visibility || 'Riêng tư' });
+    setFormData({ 
+      ...task, 
+      visibility: task.visibility || 'Riêng tư',
+      collaborators: task.collaborators || []
+    });
     setIsModalOpen(true);
   };
 
@@ -838,10 +842,26 @@ export default function TasksView({
                           <div className="flex items-center justify-between border-t border-slate-100 pt-2 text-[10px] text-slate-400 font-semibold">
                             <span>📅 Hạn: <strong className={isOverdue ? 'text-[#FF4C51]' : 'text-[#2F2B3D]'}>{t.deadline}</strong></span>
                             
-                            <div className="flex items-center gap-1">
-                              <div className="w-5 h-5 rounded-full bg-[#8C57FF]/10 text-[#8C57FF] flex items-center justify-center font-bold text-[8px]" title={assigneeObj?.name}>
+                            <div className="flex items-center -space-x-1.5 overflow-hidden">
+                              <div 
+                                className="w-5 h-5 rounded-full bg-[#8C57FF]/10 text-[#8C57FF] border border-white flex items-center justify-center font-bold text-[8px]" 
+                                title={`Chính: ${assigneeObj?.name || t.assignee}`}
+                              >
                                 {assigneeObj?.name.split(' ').pop()?.slice(0, 2)}
                               </div>
+                              {t.collaborators && t.collaborators.map(cId => {
+                                const colMember = members.find(m => m.id === cId);
+                                if (!colMember) return null;
+                                return (
+                                  <div 
+                                    key={colMember.id}
+                                    className="w-5 h-5 rounded-full bg-[#FFB400]/20 text-[#FFB400] border border-white flex items-center justify-center font-bold text-[8px]" 
+                                    title={`Phối hợp: ${colMember.name}`}
+                                  >
+                                    {colMember.name.split(' ').pop()?.slice(0, 2)}
+                                  </div>
+                                );
+                              })}
                             </div>
                           </div>
                         </div>
@@ -914,11 +934,33 @@ export default function TasksView({
                         </td>
                         <td className="p-4 text-[#2F2B3D]/70 font-bold">{t.task_type}</td>
                         <td className="p-4">
-                          <div className="flex items-center gap-1.5">
-                            <div className="w-5 h-5 rounded-full bg-[#8C57FF]/10 text-[#8C57FF] flex items-center justify-center font-bold text-[8px]">
-                              {assigneeObj?.name.split(' ').pop()?.slice(0, 2)}
+                          <div className="flex flex-col gap-1">
+                            <div className="flex items-center gap-1.5">
+                              <div className="w-5 h-5 rounded-full bg-[#8C57FF]/10 text-[#8C57FF] flex items-center justify-center font-bold text-[8px]" title="Chính">
+                                {assigneeObj?.name.split(' ').pop()?.slice(0, 2)}
+                              </div>
+                              <span className="font-extrabold text-[#2F2B3D]/80">{assigneeObj?.name || t.assignee}</span>
                             </div>
-                            <span className="font-extrabold text-[#2F2B3D]/80">{assigneeObj?.name || t.assignee}</span>
+                            {t.collaborators && t.collaborators.length > 0 && (
+                              <div className="flex items-center gap-1.5 pl-6">
+                                <span className="text-[10px] text-slate-400 font-semibold">Phụ:</span>
+                                <div className="flex items-center -space-x-1">
+                                  {t.collaborators.map(cId => {
+                                    const colMember = members.find(m => m.id === cId);
+                                    if (!colMember) return null;
+                                    return (
+                                      <div 
+                                        key={cId}
+                                        className="w-4 h-4 rounded-full bg-[#FFB400]/20 text-[#FFB400] border border-white flex items-center justify-center font-bold text-[7px]" 
+                                        title={`Phối hợp: ${colMember.name}`}
+                                      >
+                                        {colMember.name.split(' ').pop()?.slice(0, 2)}
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            )}
                           </div>
                         </td>
                         <td className="p-4">
@@ -1044,7 +1086,12 @@ export default function TasksView({
                   <label className="text-xxs text-[#2F2B3D]/70 font-extrabold uppercase block mb-1">Người phụ trách</label>
                   <select
                     value={formData.assignee}
-                    onChange={(e) => setFormData({ ...formData, assignee: e.target.value })}
+                    onChange={(e) => {
+                      const newAssignee = e.target.value;
+                      // Remove new assignee from collaborators if they were selected as one
+                      const newCollabs = (formData.collaborators || []).filter(id => id !== newAssignee);
+                      setFormData({ ...formData, assignee: newAssignee, collaborators: newCollabs });
+                    }}
                     className="w-full bg-white border border-[#E6E6E8] rounded px-2 py-1.5 text-xs text-[#2F2B3D] focus:border-[#8C57FF] focus:outline-none"
                     required
                   >
@@ -1052,6 +1099,55 @@ export default function TasksView({
                       <option key={m.id} value={m.id}>{m.name} ({m.role})</option>
                     ))}
                   </select>
+                </div>
+              </div>
+
+              {/* Chọn người phối hợp thực hiện */}
+              <div className="bg-[#F8F7FA] p-3 rounded-xl border border-[#E6E6E8] space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-xxs text-[#2F2B3D]/70 font-extrabold uppercase tracking-wider block">
+                    Người phối hợp thực hiện (Phụ / Đồng thực hiện)
+                  </label>
+                  <span className="text-[10px] text-slate-400 font-medium italic">Có thể chọn nhiều người</span>
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {members.map(m => {
+                    // Không hiển thị người phụ trách chính làm người phối hợp
+                    if (m.id === formData.assignee) return null;
+                    
+                    const isSelected = formData.collaborators?.includes(m.id);
+                    return (
+                      <button
+                        key={m.id}
+                        type="button"
+                        onClick={() => {
+                          const currentCollaborators = formData.collaborators || [];
+                          let newCollaborators: string[];
+                          if (currentCollaborators.includes(m.id)) {
+                            newCollaborators = currentCollaborators.filter(id => id !== m.id);
+                          } else {
+                            newCollaborators = [...currentCollaborators, m.id];
+                          }
+                          setFormData({ ...formData, collaborators: newCollaborators });
+                        }}
+                        className={`px-3 py-1 text-xxs font-extrabold rounded-lg border transition-all duration-150 flex items-center gap-1.5 select-none ${
+                          isSelected
+                            ? 'bg-[#8C57FF]/10 border-[#8C57FF] text-[#8C57FF] shadow-sm'
+                            : 'bg-white border-[#E6E6E8] text-[#2F2B3D]/70 hover:bg-slate-50 hover:text-[#2F2B3D]'
+                        }`}
+                      >
+                        <span className={`w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-[#8C57FF]' : 'bg-slate-300'}`}></span>
+                        <span>{m.name}</span>
+                        <span className={`text-[9px] font-normal ${isSelected ? 'text-[#8C57FF]/80' : 'text-slate-400'}`}>
+                          ({m.role.split(' ').pop()})
+                        </span>
+                        {isSelected && <span className="text-[9px] font-black ml-0.5">✓</span>}
+                      </button>
+                    );
+                  })}
+                  {members.filter(m => m.id !== formData.assignee).length === 0 && (
+                    <span className="text-xxs text-slate-400 italic">Không có thành viên nào khác</span>
+                  )}
                 </div>
               </div>
 
