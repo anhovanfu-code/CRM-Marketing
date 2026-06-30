@@ -18,6 +18,7 @@ import ProposalsView from './components/ProposalsView';
 import ResourcesView from './components/ResourcesView';
 import SettingsView from './components/SettingsView';
 import WeeklyPlansTab from './components/WeeklyPlansTab';
+import GuideView from './components/GuideView';
 
 import { auth } from './firebase';
 import { 
@@ -572,6 +573,13 @@ export default function App() {
 
   const renderActiveView = () => {
     switch (activeMenu) {
+      case 'guide':
+        return (
+          <GuideView
+            activeRole={activeRole}
+            setActiveMenu={setActiveMenu}
+          />
+        );
       case 'dashboard':
         return (
           <DashboardView

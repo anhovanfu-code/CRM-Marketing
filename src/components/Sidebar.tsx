@@ -21,7 +21,8 @@ import {
   MapPin,
   Mail,
   Settings,
-  Target
+  Target,
+  BookOpen
 } from 'lucide-react';
 import { UserRole } from '../types';
 
@@ -40,22 +41,40 @@ export default function Sidebar({
 }: SidebarProps) {
   const [showRoleDropdown, setShowRoleDropdown] = React.useState(false);
 
-  const mainConsoleItems = [
-    { id: 'dashboard', label: 'Dashboard Tổng Quan', icon: LayoutDashboard },
-    { id: 'plans', label: 'Kế Hoạch Định Kỳ MKT', icon: Target },
-    { id: 'tasks', label: 'Quản Lý Công Việc', icon: CheckSquare },
-    { id: 'calendar', label: 'Lịch Sản Xuất MKT', icon: Calendar },
-    { id: 'campaigns', label: 'Campaign Nội Bộ', icon: Megaphone },
-    { id: 'team', label: 'Nhân Sự Marketing', icon: UsersRound },
-  ];
-
-  const adminToolsItems = [
-    { id: 'kpis', label: 'Quản Lý KPI Nhân Sự', icon: TrendingUp },
-    { id: 'reports', label: 'Báo Cáo Công Việc', icon: BarChart3 },
-    { id: 'evaluations', label: 'Đánh Giá Hiệu Suất', icon: Award },
-    { id: 'proposals', label: 'Đề Xuất Phương Án', icon: Lightbulb },
-    { id: 'resources', label: 'Thư Viện Tài Nguyên', icon: FolderClosed },
-    { id: 'settings', label: 'Cấu Hình Webhooks', icon: Settings },
+  const menuSections = [
+    {
+      title: "1. Chiến Lược & Kế Hoạch",
+      items: [
+        { id: 'campaigns', label: 'Campaign Nội Bộ', icon: Megaphone },
+        { id: 'plans', label: 'Kế Hoạch Định Kỳ MKT', icon: Target },
+        { id: 'guide', label: 'Hướng Dẫn Onboarding', icon: BookOpen },
+      ]
+    },
+    {
+      title: "2. Triển Khai Hàng Ngày",
+      items: [
+        { id: 'tasks', label: 'Quản Lý Công Việc', icon: CheckSquare },
+        { id: 'calendar', label: 'Lịch Sản Xuất MKT', icon: Calendar },
+        { id: 'resources', label: 'Thư Viện Tài Nguyên', icon: FolderClosed },
+      ]
+    },
+    {
+      title: "3. Hiệu Suất & Đánh Giá",
+      items: [
+        { id: 'dashboard', label: 'Dashboard Tổng Quan', icon: LayoutDashboard },
+        { id: 'reports', label: 'Báo Cáo Công Việc', icon: BarChart3 },
+        { id: 'kpis', label: 'Quản Lý KPI Nhân Sự', icon: TrendingUp },
+        { id: 'evaluations', label: 'Đánh Giá Hiệu Suất', icon: Award },
+      ]
+    },
+    {
+      title: "4. Sáng Tạo & Hệ Thống",
+      items: [
+        { id: 'proposals', label: 'Đề Xuất Phương Án', icon: Lightbulb },
+        { id: 'team', label: 'Nhân Sự Marketing', icon: UsersRound },
+        { id: 'settings', label: 'Cấu Hình Webhooks', icon: Settings },
+      ]
+    }
   ];
 
   const roles: UserRole[] = ['Admin', 'Manager', 'Staff', 'Viewer'];
@@ -120,62 +139,32 @@ export default function Sidebar({
       </div>
 
       {/* Menu Navigation */}
-      <div id="sidebar-menu" className="flex-1 overflow-y-auto py-4 space-y-1 px-3">
-        <div className="px-3 py-1 text-[9px] font-black text-[#8C8995] uppercase tracking-wider">ĐIỀU HÀNH CHÍNH</div>
-        {mainConsoleItems.map((item) => {
-          const IconComponent = item.icon;
-          const isActive = activeMenu === item.id;
-          return (
-            <button
-              key={item.id}
-              onClick={() => setActiveMenu(item.id)}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 text-xs font-bold rounded-lg transition duration-150 ${
-                isActive
-                  ? 'bg-gradient-to-r from-[#E04B1C] to-[#F46336] text-white font-extrabold shadow-[0_4px_12px_0_rgba(224,75,28,0.3)]'
-                  : 'text-[#2F2B3D]/70 hover:bg-[#F4F5FA] hover:text-[#2F2B3D]'
-              }`}
-            >
-              <IconComponent className={`w-4 h-4 flex-shrink-0 ${isActive ? 'text-white' : 'text-[#8C8995]'}`} />
-              <span>{item.label}</span>
-            </button>
-          );
-        })}
-
-        <div className="px-3 py-1 pt-4 text-[9px] font-black text-[#8C8995] uppercase tracking-wider font-sans">ĐÁNH GIÁ & TÀI NGUYÊN</div>
-        {adminToolsItems.map((item) => {
-          const IconComponent = item.icon;
-          const isActive = activeMenu === item.id;
-          return (
-            <button
-              key={item.id}
-              onClick={() => setActiveMenu(item.id)}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 text-xs font-bold rounded-lg transition duration-150 ${
-                isActive
-                  ? 'bg-gradient-to-r from-[#E04B1C] to-[#F46336] text-white font-extrabold shadow-[0_4px_12px_0_rgba(224,75,28,0.3)]'
-                  : 'text-[#2F2B3D]/70 hover:bg-[#F4F5FA] hover:text-[#2F2B3D]'
-              }`}
-            >
-              <IconComponent className={`w-4 h-4 flex-shrink-0 ${isActive ? 'text-white' : 'text-[#8C8995]'}`} />
-              <span>{item.label}</span>
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Brand Contact Footer */}
-      <div id="sidebar-footer" className="p-4 border-t border-[#F4F5FA] bg-white text-[10px] text-[#8C8995] space-y-1.5 flex-shrink-0">
-        <div className="flex items-center gap-2">
-          <Phone className="w-3.5 h-3.5 text-[#E04B1C]" />
-          <span className="font-bold text-[#2F2B3D]/80">Hotline: 1900 5286</span>
-        </div>
-        <div className="flex items-start gap-2">
-          <MapPin className="w-3.5 h-3.5 text-[#E04B1C] flex-shrink-0 mt-0.5" />
-          <span className="leading-normal text-[#2F2B3D]/70">Chung cư Phúc Đạt - 159 Quốc lộ 1K, Đông Hòa, TP. Dĩ An</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <Mail className="w-3.5 h-3.5 text-[#E04B1C]" />
-          <span className="truncate text-[#2F2B3D]/70">an.hv@fugalo.vn</span>
-        </div>
+      <div id="sidebar-menu" className="flex-1 overflow-y-auto py-4 space-y-4 px-3">
+        {menuSections.map((section) => (
+          <div key={section.title} className="space-y-1">
+            <div className="px-3 py-1 text-[9px] font-black text-[#8C8995] uppercase tracking-wider font-mono">
+              {section.title}
+            </div>
+            {section.items.map((item) => {
+              const IconComponent = item.icon;
+              const isActive = activeMenu === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => setActiveMenu(item.id)}
+                  className={`w-full flex items-center gap-3 px-3 py-2 text-xs font-bold rounded-lg transition duration-150 ${
+                    isActive
+                      ? 'bg-gradient-to-r from-[#E04B1C] to-[#F46336] text-white font-extrabold shadow-[0_4px_12px_0_rgba(224,75,28,0.3)]'
+                      : 'text-[#2F2B3D]/70 hover:bg-[#F4F5FA] hover:text-[#2F2B3D]'
+                  }`}
+                >
+                  <IconComponent className={`w-4 h-4 flex-shrink-0 ${isActive ? 'text-white' : 'text-[#8C8995]'}`} />
+                  <span>{item.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        ))}
       </div>
     </div>
   );
