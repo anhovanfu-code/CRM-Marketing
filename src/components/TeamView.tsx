@@ -248,6 +248,29 @@ export default function TeamView({
                     </div>
                   </div>
 
+                  {/* Detailed Access Rights (CRUD badges) */}
+                  <div className="flex flex-wrap items-center gap-1.5 mt-2.5">
+                    {[
+                      { key: 'Xem dữ liệu', short: 'Xem', text: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' },
+                      { key: 'Tạo mới dữ liệu', short: 'Tạo', text: 'text-sky-400 bg-sky-500/10 border-sky-500/20' },
+                      { key: 'Chỉnh sửa dữ liệu', short: 'Sửa', text: 'text-amber-400 bg-amber-500/10 border-amber-500/20' },
+                      { key: 'Xóa dữ liệu', short: 'Xóa', text: 'text-red-400 bg-red-500/10 border-red-500/20' },
+                    ].map((p) => {
+                      const hasPerm = m.permissions?.includes(p.key);
+                      return (
+                        <span
+                          key={p.key}
+                          className={`text-[8px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded border transition-all duration-150 ${
+                            hasPerm ? p.text : 'text-slate-600 bg-slate-950/20 border-slate-900/40'
+                          }`}
+                          title={p.key}
+                        >
+                          {p.short}
+                        </span>
+                      );
+                    })}
+                  </div>
+
                   {/* Task Mini-stats info */}
                   <div className="grid grid-cols-3 gap-2 mt-4 text-center text-xxs bg-slate-950/40 p-2 rounded-xl border border-slate-850">
                     <div>
@@ -349,27 +372,70 @@ export default function TeamView({
               <p className="text-xxs text-slate-300 leading-relaxed font-semibold">{selectedMember.main_task}</p>
             </div>
 
-            {/* Responsibilities & Personal KPIs */}
+            {/* Responsibilities & Personal KPIs & System Permissions */}
             <div className="space-y-4">
               <div>
-                <span className="text-xxs font-black text-slate-400 uppercase tracking-wide block mb-1.5">Quyết toán KPI cá nhân</span>
+                <span className="text-xxs font-black text-slate-400 uppercase tracking-wide block mb-1.5">Trách nhiệm hành động</span>
                 <div className="space-y-1">
-                  {selectedMember.personal_kpis.map((kpi, idx) => (
-                    <div key={idx} className="bg-slate-900/30 p-2 rounded text-xxs text-slate-300 border border-slate-900 leading-normal font-semibold">
-                      • {kpi}
-                    </div>
-                  ))}
+                  {selectedMember.responsibilities && selectedMember.responsibilities.length > 0 ? (
+                    selectedMember.responsibilities.map((resp, idx) => (
+                      <div key={idx} className="bg-slate-900/30 p-2 rounded text-xxs text-slate-300 border border-slate-900 leading-normal font-semibold">
+                        ✓ {resp}
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-xxs text-slate-500 italic">Chưa thiết lập trách nhiệm</div>
+                  )}
                 </div>
               </div>
 
               <div>
-                <span className="text-xxs font-black text-slate-400 uppercase tracking-wide block mb-1.5">Quyền hạn & Trách nhiệm</span>
+                <span className="text-xxs font-black text-slate-400 uppercase tracking-wide block mb-1.5">Quyết toán KPI cá nhân</span>
+                <div className="space-y-1">
+                  {selectedMember.personal_kpis && selectedMember.personal_kpis.length > 0 ? (
+                    selectedMember.personal_kpis.map((kpi, idx) => (
+                      <div key={idx} className="bg-slate-900/30 p-2 rounded text-xxs text-slate-300 border border-slate-900 leading-normal font-semibold">
+                        • {kpi}
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-xxs text-slate-500 italic">Chưa thiết lập mục tiêu KPI</div>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <span className="text-xxs font-black text-slate-400 uppercase tracking-wide block mb-1.5">Quyền hạn hệ thống</span>
                 <div className="flex flex-wrap gap-1.5">
-                  {selectedMember.permissions.map((perm, idx) => (
-                    <span key={idx} className="bg-slate-900 border border-slate-800 text-[10px] px-2 py-0.5 rounded text-slate-400 font-bold">
-                      {perm}
-                    </span>
-                  ))}
+                  {selectedMember.permissions && selectedMember.permissions.length > 0 ? (
+                    selectedMember.permissions.map((perm, idx) => (
+                      <span key={idx} className="bg-slate-900 border border-slate-800 text-[10px] px-2 py-0.5 rounded text-slate-400 font-bold">
+                        {perm}
+                      </span>
+                    ))
+                  ) : (
+                    <span className="text-xxs text-slate-500 italic">Chưa gán quyền</span>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <span className="text-xxs font-black text-slate-400 uppercase tracking-wide block mb-1.5">Quyền truy cập chi tiết (CRUD)</span>
+                <div className="grid grid-cols-2 gap-2 bg-slate-900 border border-slate-850 rounded-xl p-3">
+                  {[
+                    { key: 'Xem dữ liệu', label: 'Xem (Read)' },
+                    { key: 'Tạo mới dữ liệu', label: 'Tạo mới (Create)' },
+                    { key: 'Chỉnh sửa dữ liệu', label: 'Chỉnh sửa (Update)' },
+                    { key: 'Xóa dữ liệu', label: 'Xóa (Delete)' }
+                  ].map((p) => {
+                    const hasPerm = selectedMember.permissions?.includes(p.key);
+                    return (
+                      <div key={p.key} className="flex items-center gap-1.5 text-[10px] font-extrabold">
+                        <span className={`w-2 h-2 rounded-full ${hasPerm ? 'bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.5)]' : 'bg-slate-700'}`} />
+                        <span className={hasPerm ? 'text-white' : 'text-slate-500'}>{p.label}</span>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             </div>
@@ -482,7 +548,7 @@ export default function TeamView({
               <div>
                 <label className="text-xxs text-[#5D596C] font-extrabold uppercase block mb-1">Nhiệm vụ chính được giao</label>
                 <textarea
-                  value={formData.main_task}
+                  value={formData.main_task || ''}
                   onChange={(e) => setFormData({ ...formData, main_task: e.target.value })}
                   className="w-full bg-[#F8F9FA] border border-[#E6E6E8] rounded p-2 text-xs text-[#2F2B3D] focus:outline-none focus:border-[#E04B1C] transition"
                   rows={2}
@@ -491,10 +557,68 @@ export default function TeamView({
               </div>
 
               <div>
+                <label className="text-xxs text-[#5D596C] font-extrabold uppercase block mb-1">Phân quyền hệ thống (Thao tác & Chuyên sâu)</label>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 bg-[#F8F9FA] p-3 border border-[#E6E6E8] rounded-xl">
+                  {[
+                    { key: 'Xem dữ liệu', label: 'Quyền xem (Read)' },
+                    { key: 'Tạo mới dữ liệu', label: 'Quyền tạo thêm (Create)' },
+                    { key: 'Chỉnh sửa dữ liệu', label: 'Quyền chỉnh sửa (Update)' },
+                    { key: 'Xóa dữ liệu', label: 'Quyền xóa (Delete)' },
+                    { key: 'Duyệt công việc', label: 'Duyệt công việc' },
+                    { key: 'Đánh giá nhân sự', label: 'Đánh giá nhân sự' },
+                    { key: 'Phê duyệt đề xuất', label: 'Phê duyệt đề xuất' },
+                    { key: 'Toàn quyền cấu hình', label: 'Toàn quyền Admin' },
+                  ].map((perm) => {
+                    const hasPerm = formData.permissions?.includes(perm.key);
+                    return (
+                      <label key={perm.key} className="flex items-center gap-2 text-xs text-[#2F2B3D] cursor-pointer hover:text-[#E04B1C] select-none">
+                        <input
+                          type="checkbox"
+                          checked={!!hasPerm}
+                          onChange={(e) => {
+                            const updated = e.target.checked
+                              ? [...(formData.permissions || []), perm.key]
+                              : (formData.permissions || []).filter((p) => p !== perm.key);
+                            setFormData({ ...formData, permissions: updated });
+                          }}
+                          className="rounded border-[#E6E6E8] text-[#E04B1C] focus:ring-[#E04B1C] h-4 w-4"
+                        />
+                        <span className="font-semibold">{perm.label}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xxs text-[#5D596C] font-extrabold uppercase block mb-1">Trách nhiệm hành động (Mỗi dòng một mục)</label>
+                  <textarea
+                    value={formData.responsibilities?.join('\n') || ''}
+                    onChange={(e) => setFormData({ ...formData, responsibilities: e.target.value.split('\n').filter(Boolean) })}
+                    className="w-full bg-[#F8F9FA] border border-[#E6E6E8] rounded p-2 text-xs text-[#2F2B3D] focus:outline-none focus:border-[#E04B1C] transition"
+                    rows={3}
+                    placeholder="e.g. Hoàn thành công việc đúng hạn&#10;Quản lý tài nguyên media..."
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xxs text-[#5D596C] font-extrabold uppercase block mb-1">Mục tiêu KPI cá nhân (Mỗi dòng một mục)</label>
+                  <textarea
+                    value={formData.personal_kpis?.join('\n') || ''}
+                    onChange={(e) => setFormData({ ...formData, personal_kpis: e.target.value.split('\n').filter(Boolean) })}
+                    className="w-full bg-[#F8F9FA] border border-[#E6E6E8] rounded p-2 text-xs text-[#2F2B3D] focus:outline-none focus:border-[#E04B1C] transition"
+                    rows={3}
+                    placeholder="e.g. Tỷ lệ hoàn thành kế hoạch (>90%)&#10;Đảm bảo KPI tiến độ cá nhân..."
+                  />
+                </div>
+              </div>
+
+              <div>
                 <label className="text-xxs text-[#5D596C] font-extrabold uppercase block mb-1">Ghi Chú của Trưởng Phòng</label>
                 <input
                   type="text"
-                  value={formData.notes}
+                  value={formData.notes || ''}
                   onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                   className="w-full bg-[#F8F9FA] border border-[#E6E6E8] rounded px-2.5 py-1.5 text-xs text-[#2F2B3D] focus:outline-none focus:border-[#E04B1C] transition"
                   placeholder="Học hỏi tốt, chịu khó..."

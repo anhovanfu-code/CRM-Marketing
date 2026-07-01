@@ -65,7 +65,7 @@ export default function KpiView({
   const [formData, setFormData] = useState<Partial<KpiAssignment>>({
     staff_id: '',
     role: '',
-    evaluation_month: '06/2026',
+    evaluation_month: '07/2026',
     kpi_name: '',
     target_value: '',
     actual_value: '',
@@ -93,7 +93,7 @@ export default function KpiView({
     setFormData({
       staff_id: members[0]?.id || '',
       role: members[0]?.role || '',
-      evaluation_month: '06/2026',
+      evaluation_month: '07/2026',
       kpi_name: '',
       target_value: '',
       actual_value: '',
@@ -610,117 +610,218 @@ export default function KpiView({
         </div>
       </div>
 
-      {/* Main KPI Table */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl mt-6 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-slate-950/60 border-b border-slate-800 text-[10px] uppercase tracking-wider font-extrabold text-slate-400">
-                <th className="p-4">Mã KPI</th>
-                <th className="p-4">Nhân sự</th>
-                <th className="p-4">Tháng</th>
-                <th className="p-4">Chỉ tiêu KPI được giao</th>
-                <th className="p-4 text-center">Mục tiêu</th>
-                <th className="p-4 text-center">Thực tế đạt</th>
-                <th className="p-4 text-center">Tỷ lệ</th>
-                <th className="p-4 text-center">Điểm số</th>
-                <th className="p-4">Ý kiến Trưởng phòng</th>
-                <th className="p-4">Trạng thái</th>
-                {!isReadOnly && <th className="p-4 text-right">Thao tác</th>}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-800/60 text-xs font-medium text-slate-300">
-              {filteredKpis.length === 0 ? (
-                <tr>
-                  <td colSpan={11} className="p-8 text-center text-slate-500 font-semibold">
-                    Không tìm thấy bản ghi chỉ tiêu KPI nào phù hợp.
-                  </td>
-                </tr>
-              ) : (
-                filteredKpis.map((k) => {
-                  const member = members.find(m => m.id === k.staff_id);
-                  return (
-                    <tr key={k.kpi_id} className="hover:bg-slate-850/40 transition">
-                      <td className="p-4 font-mono text-amber-500 font-bold">{k.kpi_id}</td>
-                      <td className="p-4">
-                        <div className="flex items-center gap-2">
-                          <div className="w-7 h-7 rounded-full bg-slate-800 text-slate-200 flex items-center justify-center font-bold text-xxs">
-                            {member?.name.split(' ').pop()?.slice(0, 2)}
-                          </div>
-                          <div>
-                            <div className="font-extrabold text-white">{member?.name || 'Nhân sự cũ'}</div>
-                            <div className="text-[10px] text-slate-500">{k.role}</div>
-                          </div>
+      {/* Main KPI Table & Cards */}
+      <div className="mt-6">
+        {/* Mobile Responsive Cards (shown on < md) */}
+        <div className="block md:hidden space-y-4">
+          {filteredKpis.length === 0 ? (
+            <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 text-center text-slate-500 font-semibold shadow-sm">
+              Không tìm thấy bản ghi chỉ tiêu KPI nào phù hợp.
+            </div>
+          ) : (
+            filteredKpis.map((k) => {
+              const member = members.find(m => m.id === k.staff_id);
+              return (
+                <div key={k.kpi_id} className="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-sm space-y-3 relative overflow-hidden transition">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="space-y-1">
+                      <span className="text-[10px] font-mono font-black text-amber-500">
+                        {k.kpi_id}
+                      </span>
+                      <h4 className="text-xs font-black leading-tight text-white">
+                        {k.kpi_name}
+                      </h4>
+                      <div className="text-[10px] text-slate-400 font-bold">
+                        Tháng: <span className="text-slate-200">{k.evaluation_month}</span>
+                      </div>
+                    </div>
+
+                    {/* Status badge */}
+                    <span className={`inline-flex items-center gap-1 text-[10px] font-bold ${
+                      k.status === 'Đã chốt điểm' ? 'text-emerald-400' : k.status === 'Chờ cấp trên duyệt' ? 'text-amber-400' : 'text-slate-400'
+                    }`}>
+                      <span className={`w-1.5 h-1.5 rounded-full ${
+                        k.status === 'Đã chốt điểm' ? 'bg-emerald-400' : 'bg-amber-400'
+                      }`} />
+                      {k.status}
+                    </span>
+                  </div>
+
+                  <div className="border-t border-slate-800 pt-2.5 grid grid-cols-2 gap-2 text-[10px] text-slate-400 font-bold">
+                    <div>
+                      <span className="text-slate-500 block text-[9px] uppercase font-extrabold">Nhân sự</span>
+                      <div className="flex items-center gap-1.5 mt-1">
+                        <div className="w-5 h-5 rounded-full bg-slate-800 text-slate-200 flex items-center justify-center font-bold text-[8px]">
+                          {member?.name.split(' ').pop()?.slice(0, 2)}
                         </div>
-                      </td>
-                      <td className="p-4 font-bold text-slate-400">{k.evaluation_month}</td>
-                      <td className="p-4 max-w-xs">
-                        <div className="font-bold text-slate-200 line-clamp-2">{k.kpi_name}</div>
-                      </td>
-                      <td className="p-4 text-center font-bold text-slate-400">{k.target_value}</td>
-                      <td className="p-4 text-center font-bold text-white">{k.actual_value}</td>
-                      <td className="p-4 text-center">
-                        <span className={`px-1.5 py-0.5 rounded text-[10px] font-black ${
-                          k.completion_rate >= 100
-                            ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                            : k.completion_rate >= 80
-                            ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-                            : 'bg-red-500/10 text-red-400 border border-red-500/20'
+                        <span className="text-white">{member?.name || 'Nhân sự cũ'}</span>
+                      </div>
+                    </div>
+                    <div>
+                      <span className="text-slate-500 block text-[9px] uppercase font-extrabold font-mono">Chỉ tiêu (Mục tiêu / Đạt)</span>
+                      <div className="flex items-center gap-1.5 mt-1.5 font-bold">
+                        <span className="text-slate-300">{k.target_value}</span>
+                        <span className="text-slate-600">/</span>
+                        <span className="text-white">{k.actual_value}</span>
+                        <span className={`px-1 rounded text-[8px] font-black ${
+                          k.completion_rate >= 100 ? 'bg-emerald-500/10 text-emerald-400' : k.completion_rate >= 80 ? 'bg-amber-500/10 text-amber-400' : 'bg-red-500/10 text-red-400'
                         }`}>
                           {k.completion_rate}%
                         </span>
-                      </td>
-                      <td className="p-4 text-center font-black text-amber-400 text-sm">{k.kpi_score}đ</td>
-                      <td className="p-4 max-w-xs">
-                        <div className="text-xxs text-slate-400 line-clamp-2" title={k.manager_feedback}>
-                          {k.manager_feedback || 'Chưa có ý kiến nhận xét.'}
-                        </div>
-                        {k.action_proposal && (
-                          <div className="text-[9px] text-amber-500/80 mt-0.5 font-bold uppercase tracking-wider">
-                            ↳ Đề xuất: {k.action_proposal}
-                          </div>
-                        )}
-                      </td>
-                      <td className="p-4">
-                        <span className={`inline-flex items-center gap-1 text-[10px] font-bold ${
-                          k.status === 'Đã chốt điểm'
-                            ? 'text-emerald-400'
-                            : k.status === 'Chờ cấp trên duyệt'
-                            ? 'text-amber-400'
-                            : 'text-slate-400'
-                        }`}>
-                          <span className={`w-1.5 h-1.5 rounded-full ${
-                            k.status === 'Đã chốt điểm' ? 'bg-emerald-400' : 'bg-amber-400'
-                          }`} />
-                          {k.status}
-                        </span>
-                      </td>
-                      {!isReadOnly && (
-                        <td className="p-4 text-right">
-                          <div className="flex items-center justify-end gap-1.5">
-                            <button
-                              onClick={() => openEditModal(k)}
-                              className="p-1.5 bg-white hover:bg-[#F4F5FA] border border-[#E6E6E8] text-[#2F2B3D] rounded transition"
-                              title="Chỉnh sửa chỉ tiêu"
-                            >
-                              <Edit className="w-3.5 h-3.5 text-[#2F2B3D]" />
-                            </button>
-                            <button
-                              onClick={() => handleDeleteKpi(k.kpi_id)}
-                              className="p-1.5 bg-red-50 hover:bg-red-100 border border-red-200 text-red-600 rounded transition"
-                              title="Xóa đánh giá"
-                            >
-                              <Trash2 className="w-3.5 h-3.5 text-red-600" />
-                            </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {k.manager_feedback && (
+                    <div className="bg-slate-950/40 border border-slate-800/80 rounded-lg p-2.5 text-[10px] text-slate-400 leading-relaxed italic">
+                      <strong className="text-[9px] font-black text-slate-500 uppercase not-italic block mb-0.5">Nhận xét:</strong>
+                      {k.manager_feedback}
+                    </div>
+                  )}
+
+                  <div className="border-t border-slate-800 pt-2.5 flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-1">
+                      <span className="text-slate-500 text-[9px] uppercase font-extrabold">Điểm số:</span>
+                      <span className="text-amber-400 font-black text-xs">{k.kpi_score}đ</span>
+                    </div>
+
+                    {!isReadOnly && (
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          onClick={() => openEditModal(k)}
+                          className="p-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg transition"
+                          title="Chỉnh sửa"
+                        >
+                          <Edit className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteKpi(k.kpi_id)}
+                          className="p-1.5 bg-red-950/20 hover:bg-red-900/30 text-red-400 border border-red-900/40 rounded-lg transition"
+                          title="Xóa"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+
+        {/* Desktop Table View (hidden on < md) */}
+        <div className="hidden md:block bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-slate-950/60 border-b border-slate-800 text-[10px] uppercase tracking-wider font-extrabold text-slate-400">
+                  <th className="p-4">Mã KPI</th>
+                  <th className="p-4">Nhân sự</th>
+                  <th className="p-4">Tháng</th>
+                  <th className="p-4">Chỉ tiêu KPI được giao</th>
+                  <th className="p-4 text-center">Mục tiêu</th>
+                  <th className="p-4 text-center">Thực tế đạt</th>
+                  <th className="p-4 text-center">Tỷ lệ</th>
+                  <th className="p-4 text-center">Điểm số</th>
+                  <th className="p-4">Ý kiến Trưởng phòng</th>
+                  <th className="p-4">Trạng thái</th>
+                  {!isReadOnly && <th className="p-4 text-right">Thao tác</th>}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-800/60 text-xs font-medium text-slate-300">
+                {filteredKpis.length === 0 ? (
+                  <tr>
+                    <td colSpan={11} className="p-8 text-center text-slate-500 font-semibold">
+                      Không tìm thấy bản ghi chỉ tiêu KPI nào phù hợp.
+                    </td>
+                  </tr>
+                ) : (
+                  filteredKpis.map((k) => {
+                    const member = members.find(m => m.id === k.staff_id);
+                    return (
+                      <tr key={k.kpi_id} className="hover:bg-slate-850/40 transition">
+                        <td className="p-4 font-mono text-amber-500 font-bold">{k.kpi_id}</td>
+                        <td className="p-4">
+                          <div className="flex items-center gap-2">
+                            <div className="w-7 h-7 rounded-full bg-slate-800 text-slate-200 flex items-center justify-center font-bold text-xxs">
+                              {member?.name.split(' ').pop()?.slice(0, 2)}
+                            </div>
+                            <div>
+                              <div className="font-extrabold text-white">{member?.name || 'Nhân sự cũ'}</div>
+                              <div className="text-[10px] text-slate-500">{k.role}</div>
+                            </div>
                           </div>
                         </td>
-                      )}
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
+                        <td className="p-4 font-bold text-slate-400">{k.evaluation_month}</td>
+                        <td className="p-4 max-w-xs">
+                          <div className="font-bold text-slate-200 line-clamp-2">{k.kpi_name}</div>
+                        </td>
+                        <td className="p-4 text-center font-bold text-slate-400">{k.target_value}</td>
+                        <td className="p-4 text-center font-bold text-white">{k.actual_value}</td>
+                        <td className="p-4 text-center">
+                          <span className={`px-1.5 py-0.5 rounded text-[10px] font-black ${
+                            k.completion_rate >= 100
+                              ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                              : k.completion_rate >= 80
+                              ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                              : 'bg-red-500/10 text-red-400 border border-red-500/20'
+                          }`}>
+                            {k.completion_rate}%
+                          </span>
+                        </td>
+                        <td className="p-4 text-center font-black text-amber-400 text-sm">{k.kpi_score}đ</td>
+                        <td className="p-4 max-w-xs">
+                          <div className="text-xxs text-slate-400 line-clamp-2" title={k.manager_feedback}>
+                            {k.manager_feedback || 'Chưa có ý kiến nhận xét.'}
+                          </div>
+                          {k.action_proposal && (
+                            <div className="text-[9px] text-amber-500/80 mt-0.5 font-bold uppercase tracking-wider">
+                              ↳ Đề xuất: {k.action_proposal}
+                            </div>
+                          )}
+                        </td>
+                        <td className="p-4">
+                          <span className={`inline-flex items-center gap-1 text-[10px] font-bold ${
+                            k.status === 'Đã chốt điểm'
+                              ? 'text-emerald-400'
+                              : k.status === 'Chờ cấp trên duyệt'
+                              ? 'text-amber-400'
+                              : 'text-slate-400'
+                          }`}>
+                            <span className={`w-1.5 h-1.5 rounded-full ${
+                              k.status === 'Đã chốt điểm' ? 'bg-emerald-400' : 'bg-amber-400'
+                            }`} />
+                            {k.status}
+                          </span>
+                        </td>
+                        {!isReadOnly && (
+                          <td className="p-4 text-right">
+                            <div className="flex items-center justify-end gap-1.5">
+                              <button
+                                onClick={() => openEditModal(k)}
+                                className="p-1.5 bg-white hover:bg-[#F4F5FA] border border-[#E6E6E8] text-[#2F2B3D] rounded transition"
+                                title="Chỉnh sửa chỉ tiêu"
+                              >
+                                <Edit className="w-3.5 h-3.5 text-[#2F2B3D]" />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteKpi(k.kpi_id)}
+                                className="p-1.5 bg-red-50 hover:bg-red-100 border border-red-200 text-red-600 rounded transition"
+                                title="Xóa đánh giá"
+                              >
+                                <Trash2 className="w-3.5 h-3.5 text-red-600" />
+                              </button>
+                            </div>
+                          </td>
+                        )}
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 

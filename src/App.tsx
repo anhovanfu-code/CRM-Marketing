@@ -497,6 +497,41 @@ export default function App() {
     }, 150);
   };
 
+  const handleResetDatabaseToJuly = async () => {
+    setSyncing(true);
+    try {
+      setMembers(initialTeamMembers);
+      setTasks(initialTasks);
+      setSchedules(initialSchedules);
+      setCampaigns(initialCampaigns);
+      setKpis(initialKpis);
+      setReports(initialReports);
+      setEvaluations(initialEvaluations);
+      setProposals(initialProposals);
+      setResources(initialResources);
+      setPlans(samplePlans);
+      setDailyLogs(sampleDailyLogs);
+      
+      // Force sync with Firestore
+      await syncCollection('members', initialTeamMembers);
+      await syncCollection('tasks', initialTasks);
+      await syncCollection('schedules', initialSchedules);
+      await syncCollection('campaigns', initialCampaigns);
+      await syncCollection('kpis', initialKpis);
+      await syncCollection('reports', initialReports);
+      await syncCollection('evaluations', initialEvaluations);
+      await syncCollection('proposals', initialProposals);
+      await syncCollection('resources', initialResources);
+      await syncCollection('plans', samplePlans);
+      await syncCollection('daily_logs', sampleDailyLogs);
+    } catch (error: any) {
+      console.error(error);
+      throw error;
+    } finally {
+      setSyncing(false);
+    }
+  };
+
   // Webhook notification trigger logic for tasks ("Trễ hạn" & "Cần sửa")
   const prevTasksRef = React.useRef<Task[]>([]);
 
@@ -735,6 +770,7 @@ export default function App() {
             webhooks={webhooks}
             setWebhooks={setWebhooks}
             activeRole={activeRole}
+            onResetDatabase={handleResetDatabaseToJuly}
           />
         );
       default:

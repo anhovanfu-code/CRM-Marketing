@@ -15,7 +15,11 @@ import {
   Send, 
   RefreshCw,
   Info,
-  ExternalLink
+  ExternalLink,
+  Database,
+  Trash2,
+  X,
+  Loader2
 } from 'lucide-react';
 import { WebhookConfig, SpecialistGroup } from '../types';
 
@@ -23,16 +27,39 @@ interface SettingsViewProps {
   webhooks: WebhookConfig[];
   setWebhooks: React.Dispatch<React.SetStateAction<WebhookConfig[]>>;
   activeRole: string;
+  onResetDatabase?: () => Promise<void>;
 }
 
 export default function SettingsView({
   webhooks,
   setWebhooks,
-  activeRole
+  activeRole,
+  onResetDatabase
 }: SettingsViewProps) {
   const [localConfigs, setLocalConfigs] = useState<WebhookConfig[]>(webhooks);
   const [testStatuses, setTestStatuses] = useState<Record<string, { status: 'idle' | 'sending' | 'success' | 'error'; message?: string }>>({});
   const [saveSuccess, setSaveSuccess] = useState(false);
+
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [resetting, setResetting] = useState(false);
+  const [resetSuccess, setResetSuccess] = useState(false);
+  const [resetError, setResetError] = useState<string | null>(null);
+
+  const handleResetConfirm = async () => {
+    setResetting(true);
+    setResetError(null);
+    try {
+      if (onResetDatabase) {
+        await onResetDatabase();
+        setResetSuccess(true);
+      }
+    } catch (err: any) {
+      console.error(err);
+      setResetError(err.message || 'Lỗi không xác định khi đồng bộ dữ liệu.');
+    } finally {
+      setResetting(false);
+    }
+  };
 
   const isReadOnly = activeRole === 'Viewer';
 
@@ -151,6 +178,36 @@ export default function SettingsView({
         </div>
       </div>
 
+      {/* Database Management Tools */}
+      {!isReadOnly && onResetDatabase && (
+        <div className="border border-amber-200 bg-amber-50/50 rounded-xl p-5 space-y-3">
+          <div className="flex items-start gap-3">
+            <Database className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
+            <div>
+              <h3 className="font-bold text-slate-800 text-sm">
+                Đồng bộ & Áp dụng Kế hoạch Tháng 7/2026
+              </h3>
+              <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                Hành động này sẽ thực hiện <strong>xoá bỏ hoàn toàn dữ liệu demo cũ của tháng 6</strong> (bao gồm công việc, lịch quay chụp, kpi, báo cáo, đánh giá hiệu suất) và <strong>áp dụng đồng bộ kế hoạch tháng 7/2026 mới</strong> của nhân sự vào hệ thống Firestore.
+              </p>
+            </div>
+          </div>
+          <div className="flex justify-end pt-1">
+            <button
+              onClick={() => {
+                setResetSuccess(false);
+                setResetError(null);
+                setShowResetConfirm(true);
+              }}
+              className="flex items-center gap-1.5 bg-amber-600 hover:bg-amber-700 text-white px-4 py-2.5 rounded-lg text-xs font-bold transition shadow-md shadow-amber-600/10 cursor-pointer"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              Xoá Dữ Liệu Tháng 6 & Áp Dụng Kế Hoạch Tháng 7
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Main Grid Webhook Configurations */}
       <div className="grid grid-cols-1 gap-4">
         {localConfigs.map((config) => {
@@ -255,6 +312,126 @@ export default function SettingsView({
           );
         })}
       </div>
+
+      {/* Custom React-Based Reset Database Modal */}
+      {showResetConfirm && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-md w-full shadow-[0_20px_60px_rgba(47,43,61,0.25)] border border-slate-100 overflow-hidden animate-scaleIn">
+            <div className="p-6">
+              {/* Header */}
+              <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                <div className="flex items-center gap-2">
+                  <Database className="w-5 h-5 text-amber-600 animate-pulse" />
+                  <h3 className="font-black text-sm text-slate-800 uppercase tracking-wide">
+                    Đồng bộ & Chuyển giao hệ thống
+                  </h3>
+                </div>
+                {!resetting && (
+                  <button 
+                    onClick={() => setShowResetConfirm(false)}
+                    className="p-1 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-slate-600 transition"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+
+              {/* Body Content */}
+              <div className="py-6 space-y-4">
+                {!resetting && !resetSuccess && !resetError && (
+                  <div className="space-y-3">
+                    <div className="w-12 h-12 bg-amber-50 rounded-full flex items-center justify-center text-amber-600 mx-auto mb-2">
+                      <AlertTriangle className="w-6 h-6 animate-bounce" />
+                    </div>
+                    <p className="text-xs text-slate-700 leading-relaxed font-bold text-center">
+                      Bạn có chắc chắn muốn tiến hành xóa dữ liệu demo tháng 6 và đồng bộ kế hoạch tháng 7/2026?
+                    </p>
+                    <div className="bg-amber-50/70 border border-amber-100 rounded-xl p-3 text-xxs text-amber-800 leading-relaxed space-y-1">
+                      <p>• <strong>Toàn bộ dữ liệu demo cũ của tháng 6</strong> sẽ bị xóa sạch khỏi Firestore.</p>
+                      <p>• <strong>Kế hoạch, công việc, KPIs tháng 7/2026 mới</strong> sẽ được áp dụng đồng bộ thời gian thực.</p>
+                      <p>• Hành động này có tính chất ghi đè vĩnh viễn và không thể khôi phục.</p>
+                    </div>
+                  </div>
+                )}
+
+                {resetting && (
+                  <div className="flex flex-col items-center justify-center py-6 space-y-4">
+                    <Loader2 className="w-10 h-10 text-[#E04B1C] animate-spin" />
+                    <div className="text-center">
+                      <p className="text-xs font-black text-slate-800 uppercase tracking-wider">Đang đồng bộ dữ liệu...</p>
+                      <p className="text-xxs text-slate-500 mt-1">Hệ thống đang cấu hình lại dữ liệu kế hoạch tháng 7/2026 trên Google Cloud Firestore. Vui lòng không đóng trình duyệt.</p>
+                    </div>
+                  </div>
+                )}
+
+                {resetSuccess && (
+                  <div className="space-y-3">
+                    <div className="w-12 h-12 bg-emerald-50 rounded-full flex items-center justify-center text-emerald-600 mx-auto mb-2">
+                      <CheckCircle className="w-6 h-6" />
+                    </div>
+                    <p className="text-xs font-black text-center text-slate-800 uppercase tracking-wider">
+                      Đồng bộ & Chuyển giao thành công!
+                    </p>
+                    <p className="text-xxs text-slate-600 leading-relaxed text-center">
+                      Toàn bộ dữ liệu demo tháng 6 đã được thay thế thành công bằng <strong>Dữ liệu Kế hoạch Tháng 7/2026 mới</strong>.
+                    </p>
+                    <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-3.5 text-xxs text-emerald-800 leading-relaxed">
+                      Các thay đổi đã được áp dụng trực tiếp lên hệ thống, vui lòng truy cập Dashboard hoặc các tab Chuyên môn để kiểm tra dữ liệu kế hoạch mới.
+                    </div>
+                  </div>
+                )}
+
+                {resetError && (
+                  <div className="space-y-3">
+                    <div className="w-12 h-12 bg-rose-50 rounded-full flex items-center justify-center text-rose-600 mx-auto mb-2">
+                      <AlertTriangle className="w-6 h-6" />
+                    </div>
+                    <p className="text-xs font-black text-center text-slate-800 uppercase tracking-wider">
+                      Đã xảy ra lỗi đồng bộ
+                    </p>
+                    <p className="text-xxs text-slate-600 leading-relaxed text-center">
+                      Hệ thống không thể ghi đè dữ liệu lên đám mây Firestore:
+                    </p>
+                    <div className="bg-rose-50 border border-rose-100 rounded-xl p-3 text-xxs text-rose-800 font-mono text-center">
+                      {resetError}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Footer Buttons */}
+              <div className="flex justify-end gap-2.5 border-t border-slate-100 pt-4">
+                {!resetting && !resetSuccess && !resetError && (
+                  <>
+                    <button
+                      onClick={() => setShowResetConfirm(false)}
+                      className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition"
+                    >
+                      Hủy bỏ
+                    </button>
+                    <button
+                      onClick={handleResetConfirm}
+                      className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold transition shadow-md shadow-amber-600/10 flex items-center gap-1.5"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      Xác nhận & Đồng bộ
+                    </button>
+                  </>
+                )}
+
+                {(resetSuccess || resetError) && (
+                  <button
+                    onClick={() => setShowResetConfirm(false)}
+                    className="px-5 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-bold transition"
+                  >
+                    Đóng cửa sổ
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

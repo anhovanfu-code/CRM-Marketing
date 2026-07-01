@@ -660,11 +660,11 @@ export default function WeeklyPlansTab({
                   const dayTasks = getTasksForDate(day.dateStr, selectedMemberId);
                   const isSelected = selectedDayIndex === index;
                   return (
-                    <button
+                    <div
                       key={day.dateStr}
-                      type="button"
+                      role="button"
                       onClick={() => setSelectedDayIndex(index)}
-                      className={`flex-1 min-w-[90px] px-3 py-2.5 rounded-xl border text-center transition flex flex-col items-center justify-center gap-0.5 ${
+                      className={`flex-1 min-w-[90px] px-3 py-2.5 rounded-xl border text-center transition flex flex-col items-center justify-center gap-0.5 cursor-pointer ${
                         isSelected
                           ? 'bg-[#8C57FF] border-[#8C57FF] text-white shadow-sm'
                           : 'bg-white border-[#E6E6E8] text-[#2F2B3D] hover:bg-slate-50'
@@ -674,12 +674,12 @@ export default function WeeklyPlansTab({
                         {day.name}
                       </span>
                       <span className="text-xs font-black">{day.displayDate}</span>
-                      <span className={`text-[8px] font-extrabold px-1.5 py-0.2 rounded-full mt-1 ${
+                      <span className={`text-[8px] font-extrabold px-1.5 py-0.5 rounded-full mt-1 ${
                         isSelected ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'
                       }`}>
                         {dayTasks.length} việc
                       </span>
-                    </button>
+                    </div>
                   );
                 })}
               </div>

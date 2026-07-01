@@ -51,7 +51,7 @@ export default function EvaluationsView({
   const [formData, setFormData] = useState<Partial<PersonnelEvaluation>>({
     staff_id: '',
     evaluator_id: 'an_hv', // Usually Hồ Văn An (Marketing Manager)
-    month: '06/2026',
+    month: '07/2026',
     kpi_points: 40,
     deadline_points: 15,
     quality_points: 12,
@@ -70,7 +70,7 @@ export default function EvaluationsView({
     setFormData({
       staff_id: members[0]?.id || '',
       evaluator_id: 'an_hv',
-      month: '06/2026',
+      month: '07/2026',
       kpi_points: 40,
       deadline_points: 15,
       quality_points: 12,

@@ -190,23 +190,33 @@ export default function DailyLogsView({
           <p className="text-slate-400 mt-1">Ghi nhận nhanh checklist công việc thực tế trong ngày, liên kết các task hệ thống và báo cáo tiến độ tức thời lên Manager</p>
         </div>
 
-        {/* Sub tabs selector */}
-        <div className="bg-slate-100 p-1 rounded-xl flex items-center self-start sm:self-center border border-slate-200">
-          {isManager && (
+        {/* Sub tabs selector & Add button */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2.5">
+          <div className="bg-slate-100 p-1 rounded-xl flex items-center self-start sm:self-center border border-slate-200">
+            {isManager && (
+              <button
+                onClick={() => setActiveSubTab('all')}
+                className={`px-4 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${activeSubTab === 'all' ? 'bg-[#8C57FF] text-white shadow-sm' : 'text-[#2F2B3D]/70 hover:text-[#8C57FF]'}`}
+              >
+                <Filter className="w-3.5 h-3.5" />
+                <span>Tất cả Nhật ký ({filteredLogs.length})</span>
+              </button>
+            )}
             <button
-              onClick={() => setActiveSubTab('all')}
-              className={`px-4 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${activeSubTab === 'all' ? 'bg-[#8C57FF] text-white shadow-sm' : 'text-[#2F2B3D]/70 hover:text-[#8C57FF]'}`}
+              onClick={() => setActiveSubTab('mine')}
+              className={`px-4 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${activeSubTab === 'mine' ? 'bg-[#8C57FF] text-white shadow-sm' : 'text-[#2F2B3D]/70 hover:text-[#8C57FF]'}`}
             >
-              <Filter className="w-3.5 h-3.5" />
-              <span>Tất cả Nhật ký ({filteredLogs.length})</span>
+              <User className="w-3.5 h-3.5" />
+              <span>{isManager ? 'Viết Nhật ký của An_HV' : 'Nhật ký của tôi'}</span>
             </button>
-          )}
+          </div>
+
           <button
             onClick={() => setActiveSubTab('mine')}
-            className={`px-4 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${activeSubTab === 'mine' ? 'bg-[#8C57FF] text-white shadow-sm' : 'text-[#2F2B3D]/70 hover:text-[#8C57FF]'}`}
+            className="flex items-center gap-1.5 px-4 py-2 bg-[#8C57FF] hover:bg-[#7A40F2] text-white rounded-lg text-xs font-extrabold shadow-sm transition"
           >
-            <User className="w-3.5 h-3.5" />
-            <span>{isManager ? 'Viết Nhật ký của An_HV' : 'Nhật ký của tôi'}</span>
+            <Plus className="w-4 h-4" />
+            <span>Viết Nhật Ký Mới</span>
           </button>
         </div>
       </div>

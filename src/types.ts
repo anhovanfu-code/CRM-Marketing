@@ -78,6 +78,8 @@ export interface Task {
   delay_reason: string;
   actual_completion_date: string; // YYYY-MM-DD
   visibility?: 'Công khai' | 'Riêng tư';
+  coordinators?: string[]; // TeamMember IDs
+  supporters?: string[]; // TeamMember IDs
 }
 
 export type ProductionType = 'Quay' | 'Chụp' | 'Dựng' | 'Đăng' | 'Ads' | 'Seeding';
@@ -91,6 +93,7 @@ export interface ProductionSchedule {
   content: string;
   production_type: ProductionType;
   assignee: string; // TeamMember ID
+  participants?: string[]; // Additional team members / crew involved
   location: string;
   brief_script: string;
   resources_needed: string;

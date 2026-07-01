@@ -69,7 +69,7 @@ export default function DashboardView({
 
   const [selectedStaffChecklist, setSelectedStaffChecklist] = React.useState('all');
 
-  const checklistTodayStr = '2026-06-30'; // aligns with system timeline exactly
+  const checklistTodayStr = '2026-07-05'; // aligns with system timeline exactly
   const dailyTasks = React.useMemo(() => {
     return tasks.filter(t => {
       const isToday = t.deadline === checklistTodayStr;

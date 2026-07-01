@@ -207,6 +207,8 @@ export default function TasksView({
     task_type: 'Viết nội dung',
     assignee: '',
     collaborators: [],
+    coordinators: [],
+    supporters: [],
     reviewer: 'an_hv',
     start_date: new Date().toISOString().split('T')[0],
     deadline: '',
@@ -224,6 +226,14 @@ export default function TasksView({
 
   const isReadOnly = activeRole === 'Viewer';
 
+  const loggedInMember = members.find(
+    (m) => m.email?.toLowerCase() === currentUserEmail?.toLowerCase()
+  );
+
+  const canCreate = activeRole === 'Admin' || activeRole === 'Manager' || (activeRole === 'Staff' && loggedInMember?.permissions?.includes('Tạo mới dữ liệu'));
+  const canEdit = activeRole === 'Admin' || activeRole === 'Manager' || (activeRole === 'Staff' && loggedInMember?.permissions?.includes('Chỉnh sửa dữ liệu'));
+  const canDelete = activeRole === 'Admin' || activeRole === 'Manager' || (activeRole === 'Staff' && loggedInMember?.permissions?.includes('Xóa dữ liệu'));
+
   const openCreateModal = () => {
     setEditingTask(null);
     setFormData({
@@ -233,6 +243,8 @@ export default function TasksView({
       task_type: 'Viết nội dung',
       assignee: members[0]?.id || '',
       collaborators: [],
+      coordinators: [],
+      supporters: [],
       reviewer: 'an_hv',
       start_date: new Date().toISOString().split('T')[0],
       deadline: new Date(Date.now() + 86400000 * 3).toISOString().split('T')[0], // 3 days from now
@@ -255,7 +267,9 @@ export default function TasksView({
     setFormData({ 
       ...task, 
       visibility: task.visibility || 'Riêng tư',
-      collaborators: task.collaborators || []
+      collaborators: task.collaborators || [],
+      coordinators: task.coordinators || [],
+      supporters: task.supporters || []
     });
     setIsModalOpen(true);
   };
@@ -329,6 +343,8 @@ export default function TasksView({
         task_type: formData.task_type as TaskType || 'Viết nội dung',
         assignee: formData.assignee || '',
         collaborators: formData.collaborators || [],
+        coordinators: formData.coordinators || [],
+        supporters: formData.supporters || [],
         reviewer: formData.reviewer || 'an_hv',
         start_date: formData.start_date || todayStr,
         deadline: formData.deadline || '',
@@ -444,84 +460,98 @@ export default function TasksView({
             <span>Xuất Excel</span>
           </button>
 
-          {!isReadOnly && (
-            <button
-              onClick={openCreateModal}
-              className="flex items-center gap-1.5 px-4 py-1.5 bg-[#8C57FF] hover:bg-[#7A40F2] text-white rounded-lg text-xs font-extrabold shadow-[0_4px_12px_rgba(140,87,255,0.35)] transition"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Giao Task Mới</span>
-            </button>
-          )}
+
         </div>
       </div>
 
       {/* Filter controls */}
       {(viewMode === 'kanban' || viewMode === 'table') && (
-        <div className="bg-white border border-[#E6E6E8] rounded-xl p-4 mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 shadow-[0_4px_18px_rgba(15,10,32,0.03)]">
-          <div className="col-span-1 sm:col-span-2 relative">
-            <Search className="absolute left-3 top-2.5 w-4 h-4 text-[#2F2B3D]/40" />
-            <input
-              type="text"
-              placeholder="Tìm theo tiêu đề hoặc nội dung..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-white border border-[#E6E6E8] rounded-lg pl-9 pr-4 py-2 text-xs font-semibold text-[#2F2B3D] placeholder-[#2F2B3D]/40 focus:outline-none focus:border-[#8C57FF] transition"
-            />
+        <>
+          <div className="bg-white border border-[#E6E6E8] rounded-xl p-4 mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 shadow-[0_4px_18px_rgba(15,10,32,0.03)]">
+            <div className="col-span-1 sm:col-span-2 relative">
+              <Search className="absolute left-3 top-2.5 w-4 h-4 text-[#2F2B3D]/40" />
+              <input
+                type="text"
+                placeholder="Tìm theo tiêu đề hoặc nội dung..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-white border border-[#E6E6E8] rounded-lg pl-9 pr-4 py-2 text-xs font-semibold text-[#2F2B3D] placeholder-[#2F2B3D]/40 focus:outline-none focus:border-[#8C57FF] transition"
+              />
+            </div>
+
+            <div>
+              <select
+                value={filterAssignee}
+                onChange={(e) => setFilterAssignee(e.target.value)}
+                className="w-full bg-white border border-[#E6E6E8] rounded-lg px-3 py-2 text-xs font-semibold text-[#2F2B3D] focus:outline-none focus:border-[#8C57FF]"
+              >
+                <option value="all">Tất cả nhân sự</option>
+                {members.map(m => (
+                  <option key={m.id} value={m.id}>{m.name}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <select
+                value={filterCategory}
+                onChange={(e) => setFilterCategory(e.target.value)}
+                className="w-full bg-white border border-[#E6E6E8] rounded-lg px-3 py-2 text-xs font-semibold text-[#2F2B3D] focus:outline-none focus:border-[#8C57FF]"
+              >
+                <option value="all">Tất cả mảng</option>
+                {categories.map(c => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <select
+                value={filterType}
+                onChange={(e) => setFilterType(e.target.value)}
+                className="w-full bg-white border border-[#E6E6E8] rounded-lg px-3 py-2 text-xs font-semibold text-[#2F2B3D] focus:outline-none focus:border-[#8C57FF]"
+              >
+                <option value="all">Tất cả loại việc</option>
+                {taskTypes.map(t => (
+                  <option key={t} value={t}>{t}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <select
+                value={filterPriority}
+                onChange={(e) => setFilterPriority(e.target.value)}
+                className="w-full bg-white border border-[#E6E6E8] rounded-lg px-3 py-2 text-xs font-semibold text-[#2F2B3D] focus:outline-none focus:border-[#8C57FF]"
+              >
+                <option value="all">Tất cả ưu tiên</option>
+                {priorities.map(p => (
+                  <option key={p} value={p}>{p}</option>
+                ))}
+              </select>
+            </div>
           </div>
 
-          <div>
-            <select
-              value={filterAssignee}
-              onChange={(e) => setFilterAssignee(e.target.value)}
-              className="w-full bg-white border border-[#E6E6E8] rounded-lg px-3 py-2 text-xs font-semibold text-[#2F2B3D] focus:outline-none focus:border-[#8C57FF]"
-            >
-              <option value="all">Tất cả nhân sự</option>
-              {members.map(m => (
-                <option key={m.id} value={m.id}>{m.name}</option>
-              ))}
-            </select>
+          {/* Local Title row with Giao Task Mới at Top Right */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mt-6 mb-2">
+            <div>
+              <h2 className="text-sm font-black text-[#2F2B3D] uppercase tracking-wider flex items-center gap-1.5">
+                <CheckSquare className="w-5 h-5 text-[#8C57FF]" />
+                <span>DANH SÁCH TOÀN BỘ CÔNG VIỆC ({filteredTasks.length})</span>
+              </h2>
+              <p className="text-xxs text-slate-400 font-medium">Bảng Kanban kéo thả hoặc danh sách chi tiết các công việc marketing</p>
+            </div>
+            {canCreate && (
+              <button
+                onClick={openCreateModal}
+                className="flex items-center gap-1.5 px-4 py-2 bg-[#8C57FF] hover:bg-[#7A40F2] text-white rounded-lg text-xs font-extrabold shadow-sm transition self-end sm:self-auto"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Giao Task Mới</span>
+              </button>
+            )}
           </div>
-
-          <div>
-            <select
-              value={filterCategory}
-              onChange={(e) => setFilterCategory(e.target.value)}
-              className="w-full bg-white border border-[#E6E6E8] rounded-lg px-3 py-2 text-xs font-semibold text-[#2F2B3D] focus:outline-none focus:border-[#8C57FF]"
-            >
-              <option value="all">Tất cả mảng</option>
-              {categories.map(c => (
-                <option key={c} value={c}>{c}</option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <select
-              value={filterType}
-              onChange={(e) => setFilterType(e.target.value)}
-              className="w-full bg-white border border-[#E6E6E8] rounded-lg px-3 py-2 text-xs font-semibold text-[#2F2B3D] focus:outline-none focus:border-[#8C57FF]"
-            >
-              <option value="all">Tất cả loại việc</option>
-              {taskTypes.map(t => (
-                <option key={t} value={t}>{t}</option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <select
-              value={filterPriority}
-              onChange={(e) => setFilterPriority(e.target.value)}
-              className="w-full bg-white border border-[#E6E6E8] rounded-lg px-3 py-2 text-xs font-semibold text-[#2F2B3D] focus:outline-none focus:border-[#8C57FF]"
-            >
-              <option value="all">Tất cả ưu tiên</option>
-              {priorities.map(p => (
-                <option key={p} value={p}>{p}</option>
-              ))}
-            </select>
-          </div>
-        </div>
+        </>
       )}
 
       {/* Main View layout render */}
@@ -849,7 +879,34 @@ export default function TasksView({
                               >
                                 {assigneeObj?.name.split(' ').pop()?.slice(0, 2)}
                               </div>
+                              {t.coordinators && t.coordinators.map(cId => {
+                                const colMember = members.find(m => m.id === cId);
+                                if (!colMember) return null;
+                                return (
+                                  <div 
+                                    key={colMember.id}
+                                    className="w-5 h-5 rounded-full bg-[#E04B1C]/20 text-[#E04B1C] border border-white flex items-center justify-center font-bold text-[8px]" 
+                                    title={`Phối hợp chính: ${colMember.name}`}
+                                  >
+                                    {colMember.name.split(' ').pop()?.slice(0, 2)}
+                                  </div>
+                                );
+                              })}
+                              {t.supporters && t.supporters.map(sId => {
+                                const colMember = members.find(m => m.id === sId);
+                                if (!colMember) return null;
+                                return (
+                                  <div 
+                                    key={colMember.id}
+                                    className="w-5 h-5 rounded-full bg-[#00BCD4]/20 text-[#00BCD4] border border-white flex items-center justify-center font-bold text-[8px]" 
+                                    title={`Hỗ trợ: ${colMember.name}`}
+                                  >
+                                    {colMember.name.split(' ').pop()?.slice(0, 2)}
+                                  </div>
+                                );
+                              })}
                               {t.collaborators && t.collaborators.map(cId => {
+                                if (t.coordinators?.includes(cId) || t.supporters?.includes(cId)) return null;
                                 const colMember = members.find(m => m.id === cId);
                                 if (!colMember) return null;
                                 return (
@@ -874,148 +931,302 @@ export default function TasksView({
           })}
         </div>
       ) : (
-        /* Table Layout View */
-        <div className="bg-white border border-[#E6E6E8] rounded-xl mt-6 overflow-hidden shadow-[0_4px_18px_rgba(15,10,32,0.03)]">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse text-xs font-semibold">
-              <thead>
-                <tr className="bg-[#F8F7FA] border-b border-[#E6E6E8] text-[10px] uppercase tracking-wider font-extrabold text-[#2F2B3D]/80">
-                  <th className="p-4">Mã Task</th>
-                  <th className="p-4">Tên công việc</th>
-                  <th className="p-4">Mảng</th>
-                  <th className="p-4">Loại hình</th>
-                  <th className="p-4">Phụ trách</th>
-                  <th className="p-4">Độ ưu tiên</th>
-                  <th className="p-4">Thời hạn</th>
-                  <th className="p-4 text-center">Tiến độ</th>
-                  <th className="p-4">Trạng thái</th>
-                  {!isReadOnly && <th className="p-4 text-right">Thao tác</th>}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#E6E6E8] text-[#2F2B3D]/90 bg-white">
-                {filteredTasks.length === 0 ? (
-                  <tr>
-                    <td colSpan={10} className="p-8 text-center text-[#2F2B3D]/50 font-semibold bg-white">
-                      Không tìm thấy công việc nào phù hợp bộ lọc.
-                    </td>
-                  </tr>
-                ) : (
-                  filteredTasks.map((t) => {
-                    const assigneeObj = members.find(m => m.id === t.assignee);
-                    const isTaskPrivate = t.assignee === 'an_hv' && (t.visibility || 'Riêng tư') === 'Riêng tư';
-                    return (
-                      <tr key={t.task_id} className={`hover:bg-slate-50/50 transition ${t.status === 'Trễ hạn' ? 'bg-red-50/20' : ''}`}>
-                        <td className={`p-4 font-mono font-bold ${t.status === 'Trễ hạn' ? 'text-[#FF4C51] font-extrabold' : 'text-[#8C57FF]'}`}>{t.task_id}</td>
-                        <td className="p-4 max-w-xs">
-                          <div className={`font-bold leading-tight flex items-center gap-1.5 ${t.status === 'Trễ hạn' ? 'text-[#FF4C51] font-black' : 'text-[#2F2B3D]'}`}>
-                            {t.status === 'Trễ hạn' && <AlertTriangle className="w-4 h-4 text-[#FF4C51] flex-shrink-0 animate-pulse" />}
-                            {isTaskPrivate && <Lock className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />}
-                            <span>{t.task_name}</span>
-                          </div>
-                          <div className="text-xxs text-slate-400 line-clamp-1 mt-0.5 flex items-center gap-1.5">
-                            {t.assignee === 'an_hv' && (
-                              <>
-                                <span className={`px-1 py-0.5 rounded-[3px] text-[8px] font-black uppercase tracking-wider flex items-center gap-1 ${
-                                  !isTaskPrivate ? 'bg-emerald-50 text-emerald-600 border border-emerald-150' : 'bg-slate-100 text-slate-500 border border-slate-200'
-                                }`}>
-                                  {!isTaskPrivate ? <Globe className="w-2.5 h-2.5" /> : <Lock className="w-2.5 h-2.5" />}
-                                  {isTaskPrivate ? 'Riêng tư' : 'Công khai'}
-                                </span>
-                                <span>•</span>
-                              </>
-                            )}
-                            <span>{t.description}</span>
-                          </div>
-                        </td>
-                        <td className="p-4">
-                          <span className="bg-[#8C57FF]/10 px-2 py-0.5 border border-[#8C57FF]/20 text-[#8C57FF] rounded">
+        /* Table Layout View with Responsive Mobile Cards / Desktop Table */
+        <div className="mt-6">
+          {/* Mobile Card Layout (shown on < md) */}
+          <div className="block md:hidden space-y-4">
+            {filteredTasks.length === 0 ? (
+              <div className="bg-white border border-[#E6E6E8] rounded-xl p-6 text-center text-[#2F2B3D]/50 font-semibold shadow-sm">
+                Không tìm thấy công việc nào phù hợp bộ lọc.
+              </div>
+            ) : (
+              filteredTasks.map((t) => {
+                const assigneeObj = members.find(m => m.id === t.assignee);
+                const isTaskPrivate = t.assignee === 'an_hv' && (t.visibility || 'Riêng tư') === 'Riêng tư';
+                return (
+                  <div key={t.task_id} className={`bg-white border border-[#E6E6E8] rounded-xl p-4 shadow-sm space-y-3 relative overflow-hidden transition ${t.status === 'Trễ hạn' ? 'border-l-4 border-l-[#FF4C51]' : 'border-l-4 border-l-[#8C57FF]'}`}>
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="space-y-1">
+                        <span className={`text-[10px] font-mono font-black ${t.status === 'Trễ hạn' ? 'text-[#FF4C51]' : 'text-[#8C57FF]'}`}>
+                          {t.task_id}
+                        </span>
+                        <h4 className={`text-xs font-black leading-tight ${t.status === 'Trễ hạn' ? 'text-[#FF4C51]' : 'text-[#2F2B3D]'}`}>
+                          {t.task_name}
+                        </h4>
+                        <div className="flex flex-wrap items-center gap-1.5 text-[10px] text-slate-400">
+                          <span className="bg-[#8C57FF]/10 px-1.5 py-0.5 border border-[#8C57FF]/20 text-[#8C57FF] rounded-md font-extrabold">
                             {t.business_category}
                           </span>
-                        </td>
-                        <td className="p-4 text-[#2F2B3D]/70 font-bold">{t.task_type}</td>
-                        <td className="p-4">
-                          <div className="flex flex-col gap-1">
-                            <div className="flex items-center gap-1.5">
-                              <div className="w-5 h-5 rounded-full bg-[#8C57FF]/10 text-[#8C57FF] flex items-center justify-center font-bold text-[8px]" title="Chính">
-                                {assigneeObj?.name.split(' ').pop()?.slice(0, 2)}
-                              </div>
-                              <span className="font-extrabold text-[#2F2B3D]/80">{assigneeObj?.name || t.assignee}</span>
-                            </div>
-                            {t.collaborators && t.collaborators.length > 0 && (
-                              <div className="flex items-center gap-1.5 pl-6">
-                                <span className="text-[10px] text-slate-400 font-semibold">Phụ:</span>
-                                <div className="flex items-center -space-x-1">
-                                  {t.collaborators.map(cId => {
-                                    const colMember = members.find(m => m.id === cId);
-                                    if (!colMember) return null;
-                                    return (
-                                      <div 
-                                        key={cId}
-                                        className="w-4 h-4 rounded-full bg-[#FFB400]/20 text-[#FFB400] border border-white flex items-center justify-center font-bold text-[7px]" 
-                                        title={`Phối hợp: ${colMember.name}`}
-                                      >
-                                        {colMember.name.split(' ').pop()?.slice(0, 2)}
-                                      </div>
-                                    );
-                                  })}
-                                </div>
-                              </div>
-                            )}
+                          <span>•</span>
+                          <span className="font-bold text-[#2F2B3D]/70">{t.task_type}</span>
+                        </div>
+                      </div>
+
+                      {/* Status badge */}
+                      <span className={`inline-flex items-center gap-1 text-[10px] font-black ${
+                        t.status === 'Hoàn thành' ? 'text-[#56CA00]' :
+                        t.status === 'Đang làm' ? 'text-[#16B1FF]' :
+                        t.status === 'Chờ duyệt' ? 'text-[#FFB400]' :
+                        t.status === 'Cần sửa' ? 'text-[#FFB400]' :
+                        t.status === 'Trễ hạn' ? 'text-[#FF4C51] font-extrabold animate-pulse' :
+                        'text-[#2F2B3D]/60'
+                      }`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${
+                          t.status === 'Hoàn thành' ? 'bg-[#56CA00]' :
+                          t.status === 'Đang làm' ? 'bg-[#16B1FF]' :
+                          t.status === 'Chờ duyệt' ? 'bg-[#FFB400]' :
+                          t.status === 'Cần sửa' ? 'bg-[#FFB400]' :
+                          t.status === 'Trễ hạn' ? 'bg-[#FF4C51] animate-pulse' :
+                          'bg-slate-400'
+                        }`} />
+                        {t.status}
+                      </span>
+                    </div>
+
+                    <div className="border-t border-[#E6E6E8]/40 pt-2.5 grid grid-cols-2 gap-2 text-[10px] text-slate-500 font-bold">
+                      <div>
+                        <span className="text-slate-400 block text-[9px] uppercase font-extrabold">Người phụ trách</span>
+                        <div className="flex items-center gap-1.5 mt-1">
+                          <div className="w-5 h-5 rounded-full bg-[#8C57FF]/10 text-[#8C57FF] flex items-center justify-center font-bold text-[8px]" title="Chính">
+                            {assigneeObj?.name.split(' ').pop()?.slice(0, 2)}
                           </div>
-                        </td>
-                        <td className="p-4">
-                          <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase ${
+                          <span className="text-[#2F2B3D]">{assigneeObj?.name || t.assignee}</span>
+                        </div>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 block text-[9px] uppercase font-extrabold">Độ ưu tiên / Hạn</span>
+                        <div className="flex items-center gap-1.5 mt-1">
+                          <span className={`px-1.5 py-0.5 rounded text-[9px] font-black uppercase ${
                             t.priority === 'Khẩn cấp' ? 'bg-red-50 text-[#FF4C51] border border-red-150' : t.priority === 'Cao' ? 'bg-orange-50 text-orange-600 border border-orange-100' : 'bg-slate-50 text-slate-500 border border-slate-150'
                           }`}>
                             {t.priority}
                           </span>
-                        </td>
-                        <td className={`p-4 font-mono font-bold ${t.status === 'Trễ hạn' ? 'text-[#FF4C51] font-extrabold' : 'text-[#2F2B3D]/60'}`}>{t.deadline}</td>
-                        <td className={`p-4 text-center font-bold ${t.status === 'Trễ hạn' ? 'text-[#FF4C51]' : 'text-[#8C57FF]'}`}>{t.progress_percentage}%</td>
-                        <td className="p-4">
-                          <span className={`inline-flex items-center gap-1.5 text-xxs font-black ${
-                            t.status === 'Hoàn thành' ? 'text-[#56CA00]' :
-                            t.status === 'Đang làm' ? 'text-[#16B1FF]' :
-                            t.status === 'Chờ duyệt' ? 'text-[#FFB400]' :
-                            t.status === 'Cần sửa' ? 'text-[#FFB400]' :
-                            t.status === 'Trễ hạn' ? 'text-[#FF4C51] font-extrabold animate-pulse' :
-                            'text-[#2F2B3D]/60'
-                          }`}>
-                            <span className={`w-1.5 h-1.5 rounded-full ${
-                              t.status === 'Hoàn thành' ? 'bg-[#56CA00]' :
-                              t.status === 'Đang làm' ? 'bg-[#16B1FF]' :
-                              t.status === 'Chờ duyệt' ? 'bg-[#FFB400]' :
-                              t.status === 'Cần sửa' ? 'bg-[#FFB400]' :
-                              t.status === 'Trễ hạn' ? 'bg-[#FF4C51] animate-pulse shadow-[0_0_8px_rgba(255,76,81,0.8)]' :
-                              'bg-slate-400'
-                            }`} />
-                            {t.status}
-                          </span>
-                        </td>
-                        {!isReadOnly && (
-                          <td className="p-4 text-right">
-                            <div className="flex items-center justify-end gap-1.5">
-                              <button
-                                onClick={() => openEditModal(t)}
-                                className="p-1.5 bg-slate-50 hover:bg-[#8C57FF]/10 hover:text-[#8C57FF] border border-[#E6E6E8] text-slate-600 rounded transition shadow-sm"
-                              >
-                                <Edit className="w-3.5 h-3.5" />
-                              </button>
-                              <button
-                                onClick={(e) => handleDeleteTask(t.task_id, e)}
-                                className="p-1.5 bg-red-50 hover:bg-red-100 text-[#FF4C51] border border-red-200 rounded transition shadow-sm"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
+                          <span className="font-mono">{t.deadline}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="border-t border-[#E6E6E8]/40 pt-2.5 flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-1">
+                        <span className="text-slate-400 text-[9px] uppercase font-extrabold">Tiến độ:</span>
+                        <span className="text-[#8C57FF] font-black">{t.progress_percentage}%</span>
+                      </div>
+
+                      {(canEdit || canDelete) && (
+                        <div className="flex items-center gap-1.5">
+                          {canEdit && (
+                            <button
+                              onClick={() => openEditModal(t)}
+                              className="p-1.5 bg-slate-50 hover:bg-[#8C57FF]/10 hover:text-[#8C57FF] border border-[#E6E6E8] text-slate-600 rounded-lg transition"
+                            >
+                              <Edit className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                          {canDelete && (
+                            <button
+                              onClick={(e) => handleDeleteTask(t.task_id, e)}
+                              className="p-1.5 bg-red-50 hover:bg-red-100 text-[#FF4C51] border border-red-200 rounded-lg transition"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+
+          {/* Desktop Table View (hidden on < md) */}
+          <div className="hidden md:block bg-white border border-[#E6E6E8] rounded-xl overflow-hidden shadow-[0_4px_18px_rgba(15,10,32,0.03)]">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse text-xs font-semibold">
+                <thead>
+                  <tr className="bg-[#F8F7FA] border-b border-[#E6E6E8] text-[10px] uppercase tracking-wider font-extrabold text-[#2F2B3D]/80">
+                    <th className="p-4">Mã Task</th>
+                    <th className="p-4">Tên công việc</th>
+                    <th className="p-4">Mảng</th>
+                    <th className="p-4">Loại hình</th>
+                    <th className="p-4">Phụ trách</th>
+                    <th className="p-4">Độ ưu tiên</th>
+                    <th className="p-4">Thời hạn</th>
+                    <th className="p-4 text-center">Tiến độ</th>
+                    <th className="p-4">Trạng thái</th>
+                    {!isReadOnly && <th className="p-4 text-right">Thao tác</th>}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#E6E6E8] text-[#2F2B3D]/90 bg-white">
+                  {filteredTasks.length === 0 ? (
+                    <tr>
+                      <td colSpan={10} className="p-8 text-center text-[#2F2B3D]/50 font-semibold bg-white">
+                        Không tìm thấy công việc nào phù hợp bộ lọc.
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredTasks.map((t) => {
+                      const assigneeObj = members.find(m => m.id === t.assignee);
+                      const isTaskPrivate = t.assignee === 'an_hv' && (t.visibility || 'Riêng tư') === 'Riêng tư';
+                      return (
+                        <tr key={t.task_id} className={`hover:bg-slate-50/50 transition ${t.status === 'Trễ hạn' ? 'bg-red-50/20' : ''}`}>
+                          <td className={`p-4 font-mono font-bold ${t.status === 'Trễ hạn' ? 'text-[#FF4C51] font-extrabold' : 'text-[#8C57FF]'}`}>{t.task_id}</td>
+                          <td className="p-4 max-w-xs">
+                            <div className={`font-bold leading-tight flex items-center gap-1.5 ${t.status === 'Trễ hạn' ? 'text-[#FF4C51] font-black' : 'text-[#2F2B3D]'}`}>
+                              {t.status === 'Trễ hạn' && <AlertTriangle className="w-4 h-4 text-[#FF4C51] flex-shrink-0 animate-pulse" />}
+                              {isTaskPrivate && <Lock className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />}
+                              <span>{t.task_name}</span>
+                            </div>
+                            <div className="text-xxs text-slate-400 line-clamp-1 mt-0.5 flex items-center gap-1.5">
+                              {t.assignee === 'an_hv' && (
+                                <>
+                                  <span className={`px-1 py-0.5 rounded-[3px] text-[8px] font-black uppercase tracking-wider flex items-center gap-1 ${
+                                    !isTaskPrivate ? 'bg-emerald-50 text-emerald-600 border border-emerald-150' : 'bg-slate-100 text-slate-500 border border-slate-200'
+                                  }`}>
+                                    {!isTaskPrivate ? <Globe className="w-2.5 h-2.5" /> : <Lock className="w-2.5 h-2.5" />}
+                                    {isTaskPrivate ? 'Riêng tư' : 'Công khai'}
+                                  </span>
+                                  <span>•</span>
+                                </>
+                              )}
+                              <span>{t.description}</span>
                             </div>
                           </td>
-                        )}
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
+                          <td className="p-4">
+                            <span className="bg-[#8C57FF]/10 px-2 py-0.5 border border-[#8C57FF]/20 text-[#8C57FF] rounded">
+                              {t.business_category}
+                            </span>
+                          </td>
+                          <td className="p-4 text-[#2F2B3D]/70 font-bold">{t.task_type}</td>
+                          <td className="p-4">
+                            <div className="flex flex-col gap-1">
+                              <div className="flex items-center gap-1.5">
+                                <div className="w-5 h-5 rounded-full bg-[#8C57FF]/10 text-[#8C57FF] flex items-center justify-center font-bold text-[8px]" title="Chính">
+                                  {assigneeObj?.name.split(' ').pop()?.slice(0, 2)}
+                                </div>
+                                <span className="font-extrabold text-[#2F2B3D]/80">{assigneeObj?.name || t.assignee}</span>
+                              </div>
+                              {t.coordinators && t.coordinators.length > 0 && (
+                                <div className="flex items-center gap-1.5 pl-6">
+                                  <span className="text-[10px] text-slate-400 font-semibold">Phối hợp chính:</span>
+                                  <div className="flex items-center -space-x-1">
+                                    {t.coordinators.map(cId => {
+                                      const colMember = members.find(m => m.id === cId);
+                                      if (!colMember) return null;
+                                      return (
+                                        <div 
+                                          key={cId}
+                                          className="w-4 h-4 rounded-full bg-[#E04B1C]/20 text-[#E04B1C] border border-white flex items-center justify-center font-bold text-[7px]" 
+                                          title={`Phối hợp chính: ${colMember.name}`}
+                                        >
+                                          {colMember.name.split(' ').pop()?.slice(0, 2)}
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+                              )}
+                              {t.supporters && t.supporters.length > 0 && (
+                                <div className="flex items-center gap-1.5 pl-6">
+                                  <span className="text-[10px] text-slate-400 font-semibold">Hỗ trợ:</span>
+                                  <div className="flex items-center -space-x-1">
+                                    {t.supporters.map(sId => {
+                                      const colMember = members.find(m => m.id === sId);
+                                      if (!colMember) return null;
+                                      return (
+                                        <div 
+                                          key={sId}
+                                          className="w-4 h-4 rounded-full bg-[#00BCD4]/20 text-[#00BCD4] border border-white flex items-center justify-center font-bold text-[7px]" 
+                                          title={`Hỗ trợ: ${colMember.name}`}
+                                        >
+                                          {colMember.name.split(' ').pop()?.slice(0, 2)}
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+                              )}
+                              {t.collaborators && t.collaborators.length > 0 && (
+                                <div className="flex items-center gap-1.5 pl-6">
+                                  <span className="text-[10px] text-slate-400 font-semibold">Phụ:</span>
+                                  <div className="flex items-center -space-x-1">
+                                    {t.collaborators.map(cId => {
+                                      if (t.coordinators?.includes(cId) || t.supporters?.includes(cId)) return null;
+                                      const colMember = members.find(m => m.id === cId);
+                                      if (!colMember) return null;
+                                      return (
+                                        <div 
+                                          key={cId}
+                                          className="w-4 h-4 rounded-full bg-[#FFB400]/20 text-[#FFB400] border border-white flex items-center justify-center font-bold text-[7px]" 
+                                          title={`Phối hợp: ${colMember.name}`}
+                                        >
+                                          {colMember.name.split(' ').pop()?.slice(0, 2)}
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </td>
+                          <td className="p-4">
+                            <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase ${
+                              t.priority === 'Khẩn cấp' ? 'bg-red-50 text-[#FF4C51] border border-red-150' : t.priority === 'Cao' ? 'bg-orange-50 text-orange-600 border border-orange-100' : 'bg-slate-50 text-slate-500 border border-slate-150'
+                            }`}>
+                              {t.priority}
+                            </span>
+                          </td>
+                          <td className={`p-4 font-mono font-bold ${t.status === 'Trễ hạn' ? 'text-[#FF4C51] font-extrabold' : 'text-[#2F2B3D]/60'}`}>{t.deadline}</td>
+                          <td className={`p-4 text-center font-bold ${t.status === 'Trễ hạn' ? 'text-[#FF4C51]' : 'text-[#8C57FF]'}`}>{t.progress_percentage}%</td>
+                          <td className="p-4">
+                            <span className={`inline-flex items-center gap-1.5 text-xxs font-black ${
+                              t.status === 'Hoàn thành' ? 'text-[#56CA00]' :
+                              t.status === 'Đang làm' ? 'text-[#16B1FF]' :
+                              t.status === 'Chờ duyệt' ? 'text-[#FFB400]' :
+                              t.status === 'Cần sửa' ? 'text-[#FFB400]' :
+                              t.status === 'Trễ hạn' ? 'text-[#FF4C51] font-extrabold animate-pulse' :
+                              'text-[#2F2B3D]/60'
+                            }`}>
+                              <span className={`w-1.5 h-1.5 rounded-full ${
+                                t.status === 'Hoàn thành' ? 'bg-[#56CA00]' :
+                                t.status === 'Đang làm' ? 'bg-[#16B1FF]' :
+                                t.status === 'Chờ duyệt' ? 'bg-[#FFB400]' :
+                                t.status === 'Cần sửa' ? 'bg-[#FFB400]' :
+                                t.status === 'Trễ hạn' ? 'bg-[#FF4C51] animate-pulse shadow-[0_0_8px_rgba(255,76,81,0.8)]' :
+                                'bg-slate-400'
+                              }`} />
+                              {t.status}
+                            </span>
+                          </td>
+                          {(canEdit || canDelete) && (
+                            <td className="p-4 text-right">
+                              <div className="flex items-center justify-end gap-1.5">
+                                {canEdit && (
+                                  <button
+                                    onClick={() => openEditModal(t)}
+                                    className="p-1.5 bg-slate-50 hover:bg-[#8C57FF]/10 hover:text-[#8C57FF] border border-[#E6E6E8] text-slate-600 rounded transition shadow-sm"
+                                  >
+                                    <Edit className="w-3.5 h-3.5" />
+                                  </button>
+                                )}
+                                {canDelete && (
+                                  <button
+                                    onClick={(e) => handleDeleteTask(t.task_id, e)}
+                                    className="p-1.5 bg-red-50 hover:bg-red-100 text-[#FF4C51] border border-red-200 rounded transition shadow-sm"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                )}
+                              </div>
+                            </td>
+                          )}
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}
@@ -1139,6 +1350,102 @@ export default function TasksView({
                         <span className={`w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-[#8C57FF]' : 'bg-slate-300'}`}></span>
                         <span>{m.name}</span>
                         <span className={`text-[9px] font-normal ${isSelected ? 'text-[#8C57FF]/80' : 'text-slate-400'}`}>
+                          ({m.role.split(' ').pop()})
+                        </span>
+                        {isSelected && <span className="text-[9px] font-black ml-0.5">✓</span>}
+                      </button>
+                    );
+                  })}
+                  {members.filter(m => m.id !== formData.assignee).length === 0 && (
+                    <span className="text-xxs text-slate-400 italic">Không có thành viên nào khác</span>
+                  )}
+                </div>
+              </div>
+
+              {/* Chọn người phối hợp chính */}
+              <div className="bg-[#F8F7FA] p-3 rounded-xl border border-[#E6E6E8] space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-xxs text-[#2F2B3D]/70 font-extrabold uppercase tracking-wider block">
+                    Người phối hợp chính (Coordinators)
+                  </label>
+                  <span className="text-[10px] text-slate-400 font-medium italic">Có thể chọn nhiều người</span>
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {members.map(m => {
+                    if (m.id === formData.assignee) return null;
+                    
+                    const isSelected = formData.coordinators?.includes(m.id);
+                    return (
+                      <button
+                        key={m.id}
+                        type="button"
+                        onClick={() => {
+                          const current = formData.coordinators || [];
+                          let updated: string[];
+                          if (current.includes(m.id)) {
+                            updated = current.filter(id => id !== m.id);
+                          } else {
+                            updated = [...current, m.id];
+                          }
+                          setFormData({ ...formData, coordinators: updated });
+                        }}
+                        className={`px-3 py-1 text-xxs font-extrabold rounded-lg border transition-all duration-150 flex items-center gap-1.5 select-none ${
+                          isSelected
+                            ? 'bg-[#E04B1C]/10 border-[#E04B1C] text-[#E04B1C] shadow-sm'
+                            : 'bg-white border-[#E6E6E8] text-[#2F2B3D]/70 hover:bg-slate-50 hover:text-[#2F2B3D]'
+                        }`}
+                      >
+                        <span className={`w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-[#E04B1C]' : 'bg-slate-300'}`}></span>
+                        <span>{m.name}</span>
+                        <span className={`text-[9px] font-normal ${isSelected ? 'text-[#E04B1C]/80' : 'text-slate-400'}`}>
+                          ({m.role.split(' ').pop()})
+                        </span>
+                        {isSelected && <span className="text-[9px] font-black ml-0.5">✓</span>}
+                      </button>
+                    );
+                  })}
+                  {members.filter(m => m.id !== formData.assignee).length === 0 && (
+                    <span className="text-xxs text-slate-400 italic">Không có thành viên nào khác</span>
+                  )}
+                </div>
+              </div>
+
+              {/* Chọn người hỗ trợ */}
+              <div className="bg-[#F8F7FA] p-3 rounded-xl border border-[#E6E6E8] space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-xxs text-[#2F2B3D]/70 font-extrabold uppercase tracking-wider block">
+                    Người hỗ trợ (Supporters)
+                  </label>
+                  <span className="text-[10px] text-slate-400 font-medium italic">Có thể chọn nhiều người</span>
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {members.map(m => {
+                    if (m.id === formData.assignee) return null;
+                    
+                    const isSelected = formData.supporters?.includes(m.id);
+                    return (
+                      <button
+                        key={m.id}
+                        type="button"
+                        onClick={() => {
+                          const current = formData.supporters || [];
+                          let updated: string[];
+                          if (current.includes(m.id)) {
+                            updated = current.filter(id => id !== m.id);
+                          } else {
+                            updated = [...current, m.id];
+                          }
+                          setFormData({ ...formData, supporters: updated });
+                        }}
+                        className={`px-3 py-1 text-xxs font-extrabold rounded-lg border transition-all duration-150 flex items-center gap-1.5 select-none ${
+                          isSelected
+                            ? 'bg-[#00BCD4]/10 border-[#00BCD4] text-[#00BCD4] shadow-sm'
+                            : 'bg-white border-[#E6E6E8] text-[#2F2B3D]/70 hover:bg-slate-50 hover:text-[#2F2B3D]'
+                        }`}
+                      >
+                        <span className={`w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-[#00BCD4]' : 'bg-slate-300'}`}></span>
+                        <span>{m.name}</span>
+                        <span className={`text-[9px] font-normal ${isSelected ? 'text-[#00BCD4]/80' : 'text-slate-400'}`}>
                           ({m.role.split(' ').pop()})
                         </span>
                         {isSelected && <span className="text-[9px] font-black ml-0.5">✓</span>}
